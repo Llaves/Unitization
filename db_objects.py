@@ -21,7 +21,6 @@ class Account():
     sql_string = ("""INSERT into Accounts (name, brokerage, account_no)
                   VALUES("%s", "%s", "%s")"""
       % (self.name, self.brokerage, self.account_no))
-    print(sql_string)
     con.execute(sql_string)
 
   def fetchFunds(self, con):
@@ -43,6 +42,8 @@ class Account():
     self.fetchFunds(con)
     self.fetchValues(con)
     self.fund_to_indx_dict = dict(zip([f.id for f in self.funds], list(range(len(self.funds)))))
+    self.initialUnitValues(con)
+    self.processPurchases(con)
 
   def fundCol(self, fund):
     return self.fund_to_indx_dict[fund.id]
@@ -51,6 +52,19 @@ class Account():
     self.initial_fund_units = np.zeros(len(self.funds))
     for f in self.funds:
       self.initial_fund_units[self.fundCol(f)] = f.initial_units
+
+  def processPurchases(self, con):
+    last_units = np.copy(self.initial_fund_units)
+    print("Initial units = %s" % self.initial_fund_units)
+    for v in self.values:
+      total_units = sum(last_units)
+      unit_price = v.price/total_units
+      purchases = v.fetchUnitPurchases(con, self.funds)
+      for p in purchases:
+        fund_id = p.fund_id
+        last_units[self.fund_to_indx_dict[fund_id]] += p.amount/unit_price
+      print(last_units)
+
 
 
 def makeAccount(tuple4):
@@ -77,7 +91,6 @@ class Fund():
   def insertIntoDB(self, con):
     sql_string = ('INSERT into Funds (name, initial_units, account_id) VALUES("%s", %f,  %d)'
       % (self.name, self.initial_units, self.account_id))
-    print(sql_string)
     con.execute(sql_string)
 
 def makeFund(tuple4):
@@ -101,23 +114,19 @@ class AccountValue():
   def insertIntoDB(self, con):
     sql_string = ('INSERT into AccountValue (date, value, account_id) VALUES("%s", %f, %d)'
       % (self.date, self.price,  self.account_id))
-    print(sql_string)
     con.execute(sql_string)
 
 
   def fetchUnitPurchases(self, con, funds):
-    self.purchases = []
+    purchases = []
     cursor = con.cursor()
     funds_str = str([f.id for f in funds]).strip('[]')
-    print ("SELECT UnitPurchase.id, fund_id, amount, date_id \
-                              FROM UnitPurchase JOIN AccountValue ON UnitPurchase.date_id = AccountValue.id \
-                              where fund_id in (%s) AND date_id = %d"
-                              % (funds_str, self.id))
     for row in cursor.execute("SELECT UnitPurchase.id, fund_id, amount, date_id \
                               FROM UnitPurchase JOIN AccountValue ON UnitPurchase.date_id = AccountValue.id \
                               where fund_id in (%s) AND date_id = %d"
                               % (funds_str, self.id)):
-      self.purchases += [makeUnitPurchase(row)]
+      purchases += [makeUnitPurchase(row)]
+    return purchases
 
 def makeAccountValue(tuple4):
   if len(tuple4) != 4:
@@ -140,7 +149,6 @@ class UnitPurchase():
   def insertIntoDB(self, con):
     sql_string = ('INSERT into UnitPurchase (fund_id, amount, date_id) VALUES("%s", %f, %d)'
       % (self.fund_id, self.amount, self.date_id))
-    print(sql_string)
     con.execute(sql_string)
 
 def makeUnitPurchase(tuple4):

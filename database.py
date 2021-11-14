@@ -80,19 +80,3 @@ def fetchAccounts(con):
 
 
 
-
-def fundsIDListString(funds):
-  return str([f.id for f in funds]).strip('[]')
-
-def fetchAccountUnitPurchasesForDate(con, account_funds, date_id):
-  purchases = []
-  cursor = con.cursor()
-  for row in cursor.execute("SELECT UnitPurchase.id, fund_id, amount, date_id \
-                            FROM UnitPurchase JOIN AccountValue ON UnitPurchase.date_id = AccountValue.id \
-                            where fund_id in (%s) AND date_id = %d"
-                            % (fundsIDListString(account_funds), date_id)):
-    purchases += [makeUnitPurchase(row)]
-  return purchases
-
-
-
