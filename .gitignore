@@ -1,0 +1,9 @@
+#ignore these files
+
+*.bak
+*.db
+
+
+.pylint.d/*
+
+__pycache__/*
