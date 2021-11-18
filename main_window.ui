@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1893</width>
+    <height>1367</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>UnitTracker</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1893</width>
+     <height>38</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuAccounts">
+    <property name="title">
+     <string>Accounts</string>
+    </property>
+    <addaction name="actionOpen_Account"/>
+    <addaction name="actionNew_Account"/>
+   </widget>
+   <widget class="QMenu" name="menuFunds">
+    <property name="title">
+     <string>Funds</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuPurchases">
+    <property name="title">
+     <string>Purchases</string>
+    </property>
+   </widget>
+   <addaction name="menuAccounts"/>
+   <addaction name="menuFunds"/>
+   <addaction name="menuPurchases"/>
+  </widget>
+  <action name="actionOpen_Account">
+   <property name="text">
+    <string>Open Account</string>
+   </property>
+  </action>
+  <action name="actionNew_Account">
+   <property name="text">
+    <string>New Account</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

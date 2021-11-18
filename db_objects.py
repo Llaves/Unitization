@@ -58,12 +58,14 @@ class Account():
     print("Initial units = %s" % self.initial_fund_units)
     for v in self.values:
       total_units = sum(last_units)
-      unit_price = v.price/total_units
+      v.unit_price = v.price/total_units
       purchases = v.fetchUnitPurchases(con, self.funds)
       for p in purchases:
         fund_id = p.fund_id
-        last_units[self.fund_to_indx_dict[fund_id]] += p.amount/unit_price
+        p.units_purchased = p.amount/v.unit_price
+        last_units[self.fund_to_indx_dict[fund_id]] += p.units_purchased
       print(last_units)
+      v.units_out = np.copy(last_units)
 
 
 
