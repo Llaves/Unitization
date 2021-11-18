@@ -8,52 +8,45 @@ Created on Tue Nov 16 13:15:55 2021
 import sys
 from os import path
 from main_window import *
-from add_account_dialog import *
-
-class AddAccountDialog(QtWidgets.QDialog):
-  def __init__(self, parent):
-    QtWidgets.QDialog.__init__(self, parent)
-    self.ui = Ui_AddAccountDialog()
-    self.ui.setupUi(self)
-    self.btn_save = self.ui.buttonBox.button(QtWidgets.QDialogButtonBox.Save)
-    self.btn_save.setEnabled(False)
-    self.ui.account_number_edit.textChanged.connect(self.onTextChanged)
-    self.ui.acct_name_edit.textChanged.connect(self.onTextChanged)
-    self.ui.brokerage_edit.textChanged.connect(self.onTextChanged)
-
-  @QtCore.pyqtSlot()
-  def onTextChanged(self):
-    self.btn_save.setEnabled(bool(self.ui.account_number_edit.text())
-                              and bool(self.ui.acct_name_edit.text())
-                              and bool(self.ui.brokerage_edit.text()))
-
-  def accept(self):
-    print ("Accept called")
-    QtWidgets.QDialog.accept(self)
+from AddAccountDialog import AddAccountDialog
 
 
 
 
 #%%
-class unitTracker(QtWidgets.QMainWindow):
+class UnitTracker(QtWidgets.QMainWindow):
   def __init__(self, parent=None):
     QtWidgets.QMainWindow.__init__(self, parent)
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
 
+    # connect the menu items to methods
+    self.ui.actionNew_Account.triggered.connect(self.newAccount)
     self.ui.actionOpen_Account.triggered.connect(self.openAccount)
+    self.ui.actionNew_Fund.triggered.connect(self.newFund)
+    self.ui.actionPurchase_Fund.triggered.connect(self.purchaseFund)
+
+  def newAccount(self):
+    print("new Account clicked")
+    dialog = AddAccountDialog(self)
+    dialog.open()
 
   def openAccount(self):
-    print("clicked")
-    dialog = AddAccountDialog(self)
+    print ("open account clicked")
 
-    dialog.open()
+  def newFund(self):
+    print("new fund clicked")
+
+  def purchaseFund(self):
+    print("purchase fund clicked")
+
+
 
 
 
 #%%
 app = QtWidgets.QApplication(sys.argv)
-myapp = unitTracker()
+myapp = UnitTracker()
 myapp.show()
 app.exec()
 
