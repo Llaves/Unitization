@@ -35,6 +35,8 @@
     <property name="title">
      <string>Funds</string>
     </property>
+    <addaction name="actionNew_Fund"/>
+    <addaction name="actionPurchase_Fund"/>
    </widget>
    <widget class="QMenu" name="menuPurchases">
     <property name="title">
@@ -53,6 +55,16 @@
   <action name="actionNew_Account">
    <property name="text">
     <string>New Account</string>
+   </property>
+  </action>
+  <action name="actionNew_Fund">
+   <property name="text">
+    <string>New Fund</string>
+   </property>
+  </action>
+  <action name="actionPurchase_Fund">
+   <property name="text">
+    <string>Purchase Fund</string>
    </property>
   </action>
  </widget>
