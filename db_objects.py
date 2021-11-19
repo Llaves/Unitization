@@ -16,6 +16,9 @@ class Account():
     self.brokerage = brokerage
     self.account_no = account_no
 
+  def __str__(self):
+    return("Name = %s, Brokerage = %s, Account Number = %s" % (self.name, self.brokerage, self.account_no))
+
 
   def insertIntoDB(self, con):
     sql_string = ("""INSERT into Accounts (name, brokerage, account_no)

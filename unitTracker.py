@@ -9,6 +9,8 @@ import sys
 from os import path
 from main_window import *
 from AddAccountDialog import AddAccountDialog
+from SelectAccountDialog import SelectAccountDialog
+from database import connectDB, initializeDB, fetchAccounts
 
 
 
@@ -19,6 +21,16 @@ class UnitTracker(QtWidgets.QMainWindow):
     QtWidgets.QMainWindow.__init__(self, parent)
     self.ui = Ui_MainWindow()
     self.ui.setupUi(self)
+
+    # database variables
+    self.db_filename = "test.db"
+    self.con = connectDB(self.db_filename)  #connection to sqlite
+
+    self.accounts = fetchAccounts(self.con)
+    # self.funds
+    self.active_account = None
+
+
 
     # connect the menu items to methods
     self.ui.actionNew_Account.triggered.connect(self.newAccount)
@@ -33,6 +45,16 @@ class UnitTracker(QtWidgets.QMainWindow):
 
   def openAccount(self):
     print ("open account clicked")
+    dialog = SelectAccountDialog(self)
+    #dialog.buttonBox.accepted.connect(self.openAccountComplete)
+    # populate the comboBox
+    for a in self.accounts:
+      dialog.selectAccountComboBox.insertItem(0, a.name, a)
+    dialog.open()
+
+  def setActiveAccount(self, account):
+    self.active_account = account
+    self.setWindowTitle("unitTracker - %s" % account.name)
 
   def newFund(self):
     print("new fund clicked")
