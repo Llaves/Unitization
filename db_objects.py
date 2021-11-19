@@ -69,6 +69,7 @@ class Account():
         last_units[self.fund_to_indx_dict[fund_id]] += p.units_purchased
       print(last_units)
       v.units_out = np.copy(last_units)
+    self.end_units = np.copy(last_units)
 
 
 

@@ -12,13 +12,10 @@ class SelectAccountDialog(QtWidgets.QDialog, Ui_selectAccountDialog):
   def __init__ (self, parent):
     QtWidgets.QDialog.__init__(self, parent)
     self.setupUi(self)
-    self.buttonBox.accepted.connect(self.accepted)
+    #self.buttonBox.accepted.connect(self.accepted)
     self.parent = parent
 
 
   def selectedAccount(self):
     return self.selectAccountComboBox.currentData()
 
-  def accepted(self):
-    print(self.parent)
-    self.parent.setActiveAccount(self.selectAccountComboBox.currentData())
