@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Nov 20 16:13:02 2021
+
+@author: David
+"""
+
+AddFundDialog
+  add extreme warning if trying to set initial units after purchases made
+
+do some checking after insertIntoDB before committing

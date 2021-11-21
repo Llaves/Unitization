@@ -16,6 +16,13 @@ class Account():
     self.brokerage = brokerage
     self.account_no = account_no
 
+    #dictionary to map fund ids to fund names
+    self.fund_names = {}
+    #dictionary to map AccountValues ids (account valuation on specific date) to dates
+    self.purchase_dates = {}
+    #dictionary to map fund_ids to the column index for storage of unit values
+    self.fund_id_to_indx_dict = {}
+
   def __str__(self):
     return("Name = %s, Brokerage = %s, Account Number = %s" % (self.name, self.brokerage, self.account_no))
 
@@ -24,7 +31,9 @@ class Account():
     sql_string = ("""INSERT into Accounts (name, brokerage, account_no)
                   VALUES("%s", "%s", "%s")"""
       % (self.name, self.brokerage, self.account_no))
-    con.execute(sql_string)
+    cursor = con.execute(sql_string)
+    self.id = cursor.lastrowid
+    con.commit()
 
   def fetchFunds(self, con):
     self.funds = []
@@ -32,6 +41,7 @@ class Account():
     for row in cursor.execute("SELECT id, name, initial_units, account_id from Funds WHERE account_id = %d"
                               % self.id):
       self.funds += [makeFund(row)]
+      self.fund_names[row[0]] = row[1]
 
   def fetchValues(self, con):
     """AccountValues for the given account, sorted by date"""
@@ -44,30 +54,37 @@ class Account():
   def initialize(self, con):
     self.fetchFunds(con)
     self.fetchValues(con)
-    self.fund_to_indx_dict = dict(zip([f.id for f in self.funds], list(range(len(self.funds)))))
-    self.initialUnitValues(con)
-    self.processPurchases(con)
+    self. createFundIdx()
+    self.initialUnitValues()
+    self.processPurchases()
+
+  def createFundIdx(self):
+    self.fund_id_to_indx_dict = dict(zip([f.id for f in self.funds], list(range(len(self.funds)))))
 
   def fundCol(self, fund):
-    return self.fund_to_indx_dict[fund.id]
+    return self.fund_id_to_indx_dict[fund.id]
 
-  def initialUnitValues(self, con):
+  def fundId2Col(self, id):
+    return self.fund_id_to_indx_dict[id]
+
+  def initialUnitValues(self):
     self.initial_fund_units = np.zeros(len(self.funds))
     for f in self.funds:
       self.initial_fund_units[self.fundCol(f)] = f.initial_units
 
-  def processPurchases(self, con):
+  def processPurchases(self):
+    self.purchases = []
     last_units = np.copy(self.initial_fund_units)
-    print("Initial units = %s" % self.initial_fund_units)
     for v in self.values:
+      self.purchase_dates[v.id] = v.date
       total_units = sum(last_units)
       v.unit_price = v.price/total_units
       purchases = v.fetchUnitPurchases(con, self.funds)
       for p in purchases:
         fund_id = p.fund_id
         p.units_purchased = p.amount/v.unit_price
-        last_units[self.fund_to_indx_dict[fund_id]] += p.units_purchased
-      print(last_units)
+        last_units[self.fundId2Col(fund_id)] += p.units_purchased
+        self.purchases += [p]
       v.units_out = np.copy(last_units)
     self.end_units = np.copy(last_units)
 
@@ -91,13 +108,15 @@ class Fund():
     self.account_id = account_id
 
   def __str__(self):
-    return "id = %d, name = %s, initial_units, account_id = %d" \
+    return "id = %d, name = %s, initial_units = %f, account_id = %d" \
       % (self.id, self.name, self.initial_units, self.account_id)
 
   def insertIntoDB(self, con):
     sql_string = ('INSERT into Funds (name, initial_units, account_id) VALUES("%s", %f,  %d)'
       % (self.name, self.initial_units, self.account_id))
-    con.execute(sql_string)
+    cursor = con.execute(sql_string)
+    self.id = cursor.lastrowid
+    con.commit()
 
 def makeFund(tuple4):
   if len(tuple4) != 4:

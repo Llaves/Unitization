@@ -6,6 +6,7 @@ Created on Thu Nov 18 11:53:31 2021
 """
 
 from add_account_dialog import *
+from db_objects import Account
 
 class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
   def __init__(self, parent):
@@ -16,6 +17,7 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
     self.account_number_edit.textChanged.connect(self.onTextChanged)
     self.acct_name_edit.textChanged.connect(self.onTextChanged)
     self.brokerage_edit.textChanged.connect(self.onTextChanged)
+    self.parent = parent
 
   @QtCore.pyqtSlot()
   def onTextChanged(self):
@@ -24,5 +26,10 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
                               and bool(self.brokerage_edit.text()))
 
   def accept(self):
-    print ("Accept called")
+    a = Account(0, self.acct_name_edit.text(), self.brokerage_edit.text(), self.account_number_edit.text())
+    a.insertIntoDB(self.parent.con)
+    self.parent.con.commit()
+    print("Implement check on database insertion")
+    self.parent.accounts += [a]
+    self.parent.setActiveAccount(a)
     QtWidgets.QDialog.accept(self)
