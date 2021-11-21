@@ -20,6 +20,7 @@ class Account():
     self.fund_names = {}
     #dictionary to map AccountValues ids (account valuation on specific date) to dates
     self.purchase_dates = {}
+    self.date_account_value = {}
     #dictionary to map fund_ids to the column index for storage of unit values
     self.fund_id_to_indx_dict = {}
 
@@ -77,6 +78,7 @@ class Account():
     last_units = np.copy(self.initial_fund_units)
     for v in self.values:
       self.purchase_dates[v.id] = v.date
+      self.date_account_value[v.date] = v
       total_units = sum(last_units)
       v.unit_price = v.price/total_units
       purchases = v.fetchUnitPurchases(con, self.funds)

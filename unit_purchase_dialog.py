@@ -15,7 +15,7 @@ class Ui_unitPurchaseDialog(object):
         self.buttonBox = QtWidgets.QDialogButtonBox(unitPurchaseDialog)
         self.buttonBox.setGeometry(QtCore.QRect(0, 300, 621, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayoutWidget = QtWidgets.QWidget(unitPurchaseDialog)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(50, 40, 581, 221))

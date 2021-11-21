@@ -15,7 +15,7 @@ class Ui_addFund(object):
         self.buttonBox = QtWidgets.QDialogButtonBox(addFund)
         self.buttonBox.setGeometry(QtCore.QRect(-130, 180, 621, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayoutWidget = QtWidgets.QWidget(addFund)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(80, 30, 481, 121))

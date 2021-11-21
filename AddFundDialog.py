@@ -17,6 +17,14 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
       v.setBottom(0)
       v.setDecimals(3)
       self.initialUnitsEdit.setValidator(v)
+      self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).setEnabled(False)
+      self.fundNameEdit.textChanged.connect(self.onTextChanged)
+      self.initialUnitsEdit.textChanged.connect(self.onTextChanged)
+
+  @QtCore.pyqtSlot()
+  def onTextChanged(self):
+    self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).setEnabled(bool(self.initialUnitsEdit.text())
+                                                                      and bool(self.fundNameEdit.text()))
 
 
   def fundName(self):
