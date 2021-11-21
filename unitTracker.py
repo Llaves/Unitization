@@ -47,7 +47,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
 # database variables
-    self.db_filename = "empty.db"
+    self.db_filename = "test.db"
     self.con = connectDB(self.db_filename)  #connection to sqlite
 
     self.accounts = fetchAccounts(self.con)
@@ -89,7 +89,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     row = 0
     for p in self.active_account.purchases:
       self.purchases_table.setItem(row, 0,
-                                   QtWidgets.QTableWidgetItem(self.active_account.purchase_dates[p.date_id]))
+                                   QtWidgets.QTableWidgetItem(
+                                     self.active_account.account_values[p.date_id].date))
       self.purchases_table.setItem(row, 1,
                                    QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
       self.purchases_table.setItem(row, 2, QtWidgets.QTableWidgetItem("$%.2f" % p.amount))

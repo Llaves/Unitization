@@ -18,8 +18,9 @@ class Account():
 
     #dictionary to map fund ids to fund names
     self.fund_names = {}
-    #dictionary to map AccountValues ids (account valuation on specific date) to dates
-    self.purchase_dates = {}
+    #dictionary to map AccountValue ids (account valuation on specific date) to AccountValue objects
+    self.account_values = {}
+    #dictionary to map date strings to account_value objects
     self.date_account_value = {}
     #dictionary to map fund_ids to the column index for storage of unit values
     self.fund_id_to_indx_dict = {}
@@ -57,7 +58,7 @@ class Account():
     self.fetchValues(con)
     self. createFundIdx()
     self.initialUnitValues()
-    self.processPurchases()
+    self.processPurchases(con)
 
   def createFundIdx(self):
     self.fund_id_to_indx_dict = dict(zip([f.id for f in self.funds], list(range(len(self.funds)))))
@@ -73,11 +74,12 @@ class Account():
     for f in self.funds:
       self.initial_fund_units[self.fundCol(f)] = f.initial_units
 
-  def processPurchases(self):
+  def processPurchases(self, con):
     self.purchases = []
     last_units = np.copy(self.initial_fund_units)
+    print(last_units)
     for v in self.values:
-      self.purchase_dates[v.id] = v.date
+      self.account_values[v.id] = v
       self.date_account_value[v.date] = v
       total_units = sum(last_units)
       v.unit_price = v.price/total_units
@@ -88,6 +90,7 @@ class Account():
         last_units[self.fundId2Col(fund_id)] += p.units_purchased
         self.purchases += [p]
       v.units_out = np.copy(last_units)
+      print(v.units_out)
     self.end_units = np.copy(last_units)
 
 
@@ -141,8 +144,9 @@ class AccountValue():
   def insertIntoDB(self, con):
     sql_string = ('INSERT into AccountValue (date, value, account_id) VALUES("%s", %f, %d)'
       % (self.date, self.price,  self.account_id))
-    con.execute(sql_string)
-
+    cursor = con.execute(sql_string)
+    self.id = cursor.lastrowid
+    con.commit()
 
   def fetchUnitPurchases(self, con, funds):
     purchases = []
@@ -176,7 +180,9 @@ class UnitPurchase():
   def insertIntoDB(self, con):
     sql_string = ('INSERT into UnitPurchase (fund_id, amount, date_id) VALUES("%s", %f, %d)'
       % (self.fund_id, self.amount, self.date_id))
-    con.execute(sql_string)
+    cursor = con.execute(sql_string)
+    self.id = cursor.lastrowid
+    con.commit()
 
 def makeUnitPurchase(tuple4):
   if len(tuple4) != 4:
