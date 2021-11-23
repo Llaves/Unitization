@@ -6,7 +6,7 @@ Created on Fri Nov  5 17:41:16 2021
 """
 
 from exceptions import *
-import numpy as np
+from copy import copy
 
 
 class Account():
@@ -22,8 +22,8 @@ class Account():
     self.account_values = {}
     #dictionary to map date strings to account_value objects
     self.date_account_value = {}
-    #dictionary to map fund_ids to the column index for storage of unit values
-    self.fund_id_to_indx_dict = {}
+    #dictionary to map fund.id to initial units
+    self.initial_fund_units = {}
 
   def __str__(self):
     return("Name = %s, Brokerage = %s, Account Number = %s" % (self.name, self.brokerage, self.account_no))
@@ -63,35 +63,27 @@ class Account():
   def createFundIdx(self):
     self.fund_id_to_indx_dict = dict(zip([f.id for f in self.funds], list(range(len(self.funds)))))
 
-  def fundCol(self, fund):
-    return self.fund_id_to_indx_dict[fund.id]
-
-  def fundId2Col(self, id):
-    return self.fund_id_to_indx_dict[id]
 
   def initialUnitValues(self):
-    self.initial_fund_units = np.zeros(len(self.funds))
     for f in self.funds:
-      self.initial_fund_units[self.fundCol(f)] = f.initial_units
+      self.initial_fund_units[f.id] = f.initial_units
 
   def processPurchases(self, con):
     self.purchases = []
-    last_units = np.copy(self.initial_fund_units)
-    print(last_units)
+    last_units = copy(self.initial_fund_units)
     for v in self.values:
       self.account_values[v.id] = v
       self.date_account_value[v.date] = v
-      total_units = sum(last_units)
+      total_units = sum(last_units.values())
       v.unit_price = v.price/total_units
       purchases = v.fetchUnitPurchases(con, self.funds)
       for p in purchases:
-        fund_id = p.fund_id
         p.units_purchased = p.amount/v.unit_price
-        last_units[self.fundId2Col(fund_id)] += p.units_purchased
+        last_units[p.fund_id] += p.units_purchased
         self.purchases += [p]
-      v.units_out = np.copy(last_units)
+      v.units_out = copy(last_units)
       print(v.units_out)
-    self.end_units = np.copy(last_units)
+    self.end_units = copy(last_units)
 
 
 

@@ -15,7 +15,10 @@ from UnitPurchaseDialog import UnitPurchaseDialog
 from database import connectDB, initializeDB, fetchAccounts
 from db_objects import Account, Fund, AccountValue, UnitPurchase
 
-
+class FundTableItem(QtWidgets.QTableWidgetItem):
+  def __init__(self, fund):
+    QtWidgets.QTableWidgetItem.__init__(self, fund.name)
+    self.fund = fund
 
 
 #%%
@@ -79,9 +82,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def populateFundsTable(self):
     row = 0
     for f in self.active_account.funds:
-      self.funds_table.setItem(row, 0, QtWidgets.QTableWidgetItem(f.name))
+      self.funds_table.setItem(row, 0, FundTableItem(f))#  QtWidgets.QTableWidgetItem(f.name))
       self.funds_table.setItem(row, 1, QtWidgets.QTableWidgetItem(str(f.initial_units)))
-      end_units =self.active_account.end_units[self.active_account.fundCol(f)]
+      end_units =self.active_account.end_units[f.id]
       self.funds_table.setItem(row, 2, QtWidgets.QTableWidgetItem("%.3f" % end_units))
       row += 1
 
