@@ -31,6 +31,9 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
     # connect date edit finished signal
     # keyboard tracking is disable in designer file so that signal occurs only on loss of focus
     self.purchase_date.editingFinished.connect(self.checkDate)
+    self.calendar = self.purchase_date.calendarWidget()
+    #is there already a purchase on today's date?
+    self.checkDate()
 
     # set the validator for purchase amount
     v = QtGui.QDoubleValidator()
@@ -51,19 +54,26 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
   def dollarsPurchased(self):
     return float(self.purchase_dollars.text())
 
-  def accountValue(self):
+  def accountValueDollars(self):
     return float(self.account_value.text())
 
+  def knownAccountValueObj(self):
+    return self.known_account_value
+
   def checkDate(self):
+    if not self.calendar.hasFocus():
     #this is a real change for the date
-    date = self.date()
-    if (date in self.parent.active_account.account_values_by_date):
-      print ("date found")
-      self.account_value.setEnabled(False)
-      self.known_account_value = self.parent.active_account.account_values_by_date[date]
-      self.account_value.setText('{0:.2f}'.format(self.known_account_value.value))
-    else:
-      #check if account_value came from a previously known date, then blank out the edit box
-      if self.known_account_value:
-        self.account_value.setEnabled(True)
-        self.account_value.setText('')
+      print ("checkDate called")
+      date = self.date()
+      if (date in self.parent.active_account.account_values_by_date):
+        print ("date found")
+        self.account_value.setEnabled(False)
+        self.known_account_value = self.parent.active_account.account_values_by_date[date]
+        self.account_value.setText('{0:.2f}'.format(self.known_account_value.value))
+      else:
+        #check if account_value came from a previously known date, then blank out the edit box
+        if self.known_account_value:
+          self.account_value.setEnabled(True)
+          self.account_value.setText('')
+          # clear known_account_value
+          self.known_account_value = None

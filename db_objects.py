@@ -16,6 +16,9 @@ class Account():
     self.brokerage = brokerage
     self.account_no = account_no
 
+    #sorted list of account_values
+    self.account_values = []
+
     #dictionary to map fund ids to fund names
     self.fund_names = {}
     #dictionary to map AccountValue ids (account valuation on specific date) to AccountValue objects
@@ -47,9 +50,27 @@ class Account():
       self.funds += [makeFund(row)]
       self.fund_names[row[0]] = row[1]
 
+  def addFund(self, new_fund, con):
+    self.funds += [new_fund]
+    self.fund_names[new_fund.id] = new_fund.name
+    self.initialUnitValues()
+    self.processPurchases(con)
+
+  def deleteFund(self, fund, con):
+    fund.deletePurchases(con)
+    sql_string = "DELETE FROM Funds WHERE id = %d" % fund.id
+    con.execute(sql_string)
+    con.commit()
+    del self.fund_names[fund.id]
+    del self.initial_fund_units[fund.id]
+    self.funds.remove(fund)
+    self.processPurchases(con)
+
+
+
+
   def fetchValues(self, con):
     """AccountValues for the given account, sorted by date"""
-    self.account_values = []
     cursor = con.cursor()
     for row in cursor.execute("Select id, date, value, account_id FROM AccountValue " \
                                 "WHERE account_id = %d ORDER BY date" % (self.id)):
@@ -57,16 +78,18 @@ class Account():
       self.account_values += [v]
       self.account_values_by_date[v.date] = v
 
+  def addValue(self, value):
+    self.account_values += [value]
+    #the list is sorted, so sort to maintain order
+    self.account_values.sort(key = lambda av: av.date)
+
 
   def initialize(self, con):
     self.fetchFunds(con)
     self.fetchValues(con)
-    self. createFundIdx()
     self.initialUnitValues()
     self.processPurchases(con)
 
-  def createFundIdx(self):
-    self.fund_id_to_indx_dict = dict(zip([f.id for f in self.funds], list(range(len(self.funds)))))
 
 
   def initialUnitValues(self):
@@ -117,6 +140,11 @@ class Fund():
       % (self.name, self.initial_units, self.account_id))
     cursor = con.execute(sql_string)
     self.id = cursor.lastrowid
+    con.commit()
+
+  def deletePurchases(self, con):
+    sql_string = ('DELETE FROM UnitPurchase WHERE fund_id = %d' % self.id)
+    con.execute(sql_string)
     con.commit()
 
 def makeFund(tuple4):
@@ -184,7 +212,3 @@ def makeUnitPurchase(tuple4):
   if len(tuple4) != 4:
     raise TupleLengthError()
   return UnitPurchase(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
-
-
-
-

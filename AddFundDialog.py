@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QMessageBox
 class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
   def __init__(self, parent):
       QtWidgets.QDialog.__init__(self, parent)
+      self.parent = parent
       self.setupUi(self)
 
       # set validator to doubles, three decimal places, greater than zero
@@ -38,7 +39,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
   # change all the unit counts that had been previously calculated. Require checking through a warning before
   # allowing this
   def initialUnitsEntered(self):
-    if (float(self.initial_units.text()) > 0):
+    if (float(self.initial_units.text()) > 0) and self.parent.warnings_enabled:
       msg_box = QMessageBox()
       msg_box.setText("You have entered an initial units value in an account that has existing fund purchases")
       msg_box.setInformativeText("If you proceed, unit values for all funds in this account"\

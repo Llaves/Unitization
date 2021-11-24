@@ -23,13 +23,12 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
   def onTextChanged(self):
     self.btn_save.setEnabled(bool(self.account_number.text())
                               and bool(self.acct_name.text())
-                              and bool(self.brokerage_edit.text()))
+                              and bool(self.brokerage.text()))
 
   def accept(self):
-    a = Account(0, self.acct_name.text(), self.brokerage_edit.text(), self.account_number.text())
+    a = Account(0, self.acct_name.text(), self.brokerage.text(), self.account_number.text())
     a.insertIntoDB(self.parent.con)
     self.parent.con.commit()
-    print("Implement check on database insertion")
     self.parent.accounts += [a]
     self.parent.setActiveAccount(a)
     QtWidgets.QDialog.accept(self)

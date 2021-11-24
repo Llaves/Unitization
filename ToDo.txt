@@ -14,3 +14,8 @@ do some checking after insertIntoDB before committing
 Purchase Fund dialog
   if new purchase date is before last date, give severe warning
   if account value is way out of line with last account value, give warning
+
+Advanced Mode
+	enable editing
+	
+Hide FUnds with zero units
