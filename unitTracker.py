@@ -14,7 +14,7 @@ from AddFundDialog import AddFundDialog
 from UnitPurchaseDialog import UnitPurchaseDialog
 from database import connectDB, initializeDB, fetchAccounts
 from db_objects import Account, Fund, AccountValue, UnitPurchase
-from PyQt5 import Qt
+
 
 class FundTableItem(QtWidgets.QTableWidgetItem):
   def __init__(self, fund):
@@ -42,10 +42,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.purchases_table.setHorizontalHeaderLabels(["Date", "Fund Name", "Amount", "Units Purchased"])
     self.account_values_table.setHorizontalHeaderLabels(["Date", "Account Value"])
     #windows fix for missing rule beneath header
-    self.funds_table.horizontalHeader().setStyleSheet(
-      "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
-    self.purchases_table.horizontalHeader().setStyleSheet(
-      "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
+    self.tableHeaderFix(self.funds_table)
+    self.tableHeaderFix(self.purchases_table)
+    self.tableHeaderFix(self.account_values_table)
     #hide the tab view until we have an active account
     self.tabWidget.setVisible(False)
     #disable edit for tables
@@ -92,9 +91,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
   def openAccount(self):
     dialog = SelectAccountDialog(self)
-    # populate the comboBox
-    for a in self.accounts:
-      dialog.selectAccountComboBox.insertItem(9999, a.name, a)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       self.setActiveAccount(dialog.selectedAccount())
 
@@ -188,6 +184,10 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers);
     table.setFocusPolicy(QtCore.Qt.NoFocus);
     table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection);
+
+  def tableHeaderFix(self, table):
+    table.setStyleSheet(
+      "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
 
 
 #%%

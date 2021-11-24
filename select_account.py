@@ -17,9 +17,9 @@ class Ui_selectAccountDialog(object):
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
-        self.selectAccountComboBox = QtWidgets.QComboBox(selectAccountDialog)
-        self.selectAccountComboBox.setGeometry(QtCore.QRect(110, 70, 441, 71))
-        self.selectAccountComboBox.setObjectName("selectAccountComboBox")
+        self.select_account = QtWidgets.QComboBox(selectAccountDialog)
+        self.select_account.setGeometry(QtCore.QRect(110, 70, 441, 71))
+        self.select_account.setObjectName("select_account")
 
         self.retranslateUi(selectAccountDialog)
         self.buttonBox.accepted.connect(selectAccountDialog.accept)

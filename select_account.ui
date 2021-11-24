@@ -29,7 +29,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QComboBox" name="selectAccountComboBox">
+  <widget class="QComboBox" name="select_account">
    <property name="geometry">
     <rect>
      <x>110</x>

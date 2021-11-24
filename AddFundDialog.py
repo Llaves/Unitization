@@ -17,28 +17,28 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
       v = QtGui.QDoubleValidator()
       v.setBottom(0)
       v.setDecimals(3)
-      self.initialUnitsEdit.setText("0")
-      self.initialUnitsEdit.setValidator(v)
+      self.initial_units.setText("0")
+      self.initial_units.setValidator(v)
       if (len(parent.active_account.purchases) > 0):
-        self.initialUnitsEdit.editingFinished.connect(self.initialUnitsEntered)
+        self.initial_units.editingFinished.connect(self.initialUnitsEntered)
       self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).setEnabled(False)
-      self.fundNameEdit.textChanged.connect(self.onTextChanged)
+      self.fund_name.textChanged.connect(self.onTextChanged)
       # although we initialize to 0, user could change this to blank, which would be invalid, but still
       # pass validator
-      self.initialUnitsEdit.textChanged.connect(self.onTextChanged)
+      self.initial_units.textChanged.connect(self.onTextChanged)
 
 
 
   @QtCore.pyqtSlot()
   def onTextChanged(self):
-    self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).setEnabled(bool(self.initialUnitsEdit.text())
-                                                                      and bool(self.fundNameEdit.text()))
+    self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).setEnabled(bool(self.initial_units.text())
+                                                                      and bool(self.fund_name.text()))
 
   # initial units should almost never be entered if there are already purchases in the account, as this will
   # change all the unit counts that had been previously calculated. Require checking through a warning before
   # allowing this
   def initialUnitsEntered(self):
-    if (float(self.initialUnitsEdit.text()) > 0):
+    if (float(self.initial_units.text()) > 0):
       msg_box = QMessageBox()
       msg_box.setText("You have entered an initial units value in an account that has existing fund purchases")
       msg_box.setInformativeText("If you proceed, unit values for all funds in this account"\
@@ -46,7 +46,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
       msg_box.setStandardButtons(QMessageBox.Save | QMessageBox.Discard)
       msg_box.setDefaultButton(QMessageBox.Discard)
       if (msg_box.exec() == QMessageBox.Discard):
-        self.initialUnitsEdit.setText("0")
+        self.initial_units.setText("0")
 
 
 
@@ -55,7 +55,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
 
 
   def fundName(self):
-    return self.fundNameEdit.text()
+    return self.fund_name.text()
 
   def initialUnits(self):
-    return float(self.initialUnitsEdit.text())
+    return float(self.initial_units.text())
