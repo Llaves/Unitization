@@ -104,6 +104,42 @@
       <column/>
      </widget>
     </widget>
+    <widget class="QWidget" name="account_values_tab">
+     <attribute name="title">
+      <string>Account Values</string>
+     </attribute>
+     <widget class="QTableWidget" name="account_values_table">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>1331</width>
+        <height>1141</height>
+       </rect>
+      </property>
+      <property name="rowCount">
+       <number>10</number>
+      </property>
+      <property name="columnCount">
+       <number>2</number>
+      </property>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <row/>
+      <column/>
+      <column/>
+     </widget>
+    </widget>
    </widget>
    <widget class="QFrame" name="frame">
     <property name="geometry">

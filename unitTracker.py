@@ -14,12 +14,22 @@ from AddFundDialog import AddFundDialog
 from UnitPurchaseDialog import UnitPurchaseDialog
 from database import connectDB, initializeDB, fetchAccounts
 from db_objects import Account, Fund, AccountValue, UnitPurchase
+from PyQt5 import Qt
 
 class FundTableItem(QtWidgets.QTableWidgetItem):
   def __init__(self, fund):
     QtWidgets.QTableWidgetItem.__init__(self, fund.name)
     self.fund = fund
 
+class AccountValuesTableItem(QtWidgets.QTableWidgetItem):
+  def __init__(self, account_value):
+    QtWidgets.QTableWidgetItem.__init__(self, account_value.date)
+    self.account_value = account_value
+
+class ItemRightAlign(QtWidgets.QTableWidgetItem):
+  def __init__(self, item):
+    QtWidgets.QTableWidgetItem.__init__(self, item)
+    self.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
 
 #%%
 class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -30,6 +40,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     #set up the funds, purchases tables
     self.funds_table.setHorizontalHeaderLabels(["Name", "Initial Units", "End Units"])
     self.purchases_table.setHorizontalHeaderLabels(["Date", "Fund Name", "Amount", "Units Purchased"])
+    self.account_values_table.setHorizontalHeaderLabels(["Date", "Account Value"])
     #windows fix for missing rule beneath header
     self.funds_table.horizontalHeader().setStyleSheet(
       "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
@@ -37,11 +48,14 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
     #hide the tab view until we have an active account
     self.tabWidget.setVisible(False)
-    #disable edit for fund and purchases tables
+    #disable edit for tables
     self.disableTableEdit(self.funds_table)
     self.disableTableEdit(self.purchases_table)
+    self.disableTableEdit(self.account_values_table)
     self.funds_table.setMaximumWidth(self.tableTotalWidth(self.funds_table) + 2)
     self.purchases_table.setMaximumWidth(self.tableTotalWidth(self.purchases_table) + 2)
+    self.account_values_table.setMaximumWidth(self.tableTotalWidth(self.account_values_table) + 2)
+
 
     # disable menu items until account is loaded
     self.menuFunds.setEnabled(False)
@@ -65,6 +79,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.actionNew_Fund.triggered.connect(self.newFund)
     self.actionPurchase_Fund.triggered.connect(self.purchaseFund)
 
+#capture the close event so that we can properly close the database connection
+  def closeEvent(self, event):
+    self.con.close()
+    self.close()
+
   def newAccount(self):
     print("new Account clicked")
     dialog = AddAccountDialog(self)
@@ -83,9 +102,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     row = 0
     for f in self.active_account.funds:
       self.funds_table.setItem(row, 0, FundTableItem(f))#  QtWidgets.QTableWidgetItem(f.name))
-      self.funds_table.setItem(row, 1, QtWidgets.QTableWidgetItem(str(f.initial_units)))
+      self.funds_table.setItem(row, 1, ItemRightAlign(str(f.initial_units)))
       end_units =self.active_account.end_units[f.id]
-      self.funds_table.setItem(row, 2, QtWidgets.QTableWidgetItem("%.3f" % end_units))
+      self.funds_table.setItem(row, 2, ItemRightAlign("%.3f" % end_units))
       row += 1
 
   def populatePurchasesTable(self):
@@ -93,11 +112,18 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     for p in self.active_account.purchases:
       self.purchases_table.setItem(row, 0,
                                    QtWidgets.QTableWidgetItem(
-                                     self.active_account.account_values[p.date_id].date))
+                                     self.active_account.account_values_by_id[p.date_id].date))
       self.purchases_table.setItem(row, 1,
                                    QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
-      self.purchases_table.setItem(row, 2, QtWidgets.QTableWidgetItem("$%.2f" % p.amount))
-      self.purchases_table.setItem(row, 3, QtWidgets.QTableWidgetItem("%.3f" % p.units_purchased))
+      self.purchases_table.setItem(row, 2, ItemRightAlign("$%.2f" % p.amount))
+      self.purchases_table.setItem(row, 3, ItemRightAlign("%.3f" % p.units_purchased))
+      row += 1
+
+  def populateAccountValuesTable(self):
+    row = 0
+    for av in self.active_account.account_values:
+      self.account_values_table.setItem(row, 0, AccountValuesTableItem(av))
+      self.account_values_table.setItem(row, 1, ItemRightAlign("$%.2f" % av.value))
       row += 1
 
   def setActiveAccount(self, account):
@@ -108,6 +134,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.populateFundsTable()
       #populate the purchases table in the purchases tab
       self.populatePurchasesTable()
+      #populate the accounts values table in the account values tab
+      self.populateAccountValuesTable()
 
       # set the account summary box
       self.account_name.setText(self.active_account.name)
@@ -130,12 +158,23 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.active_account.funds += [new_fund]
       self.active_account.createFundIdx()
       self.active_account.initialUnitValues()
-      self.active_account.processPurchases()
+      self.active_account.processPurchases(self.con)
       self.populateFundsTable()
 
 
   def purchaseFund(self):
     print("purchase fund clicked")
+    dialog = UnitPurchaseDialog(self)
+    if (dialog.exec() == QtWidgets.QDialog().Accepted):
+      print ("Units purchased")
+      print (dialog.date())
+      print (dialog.fund())
+      print (dialog.dollarsPurchased())
+      #check for existing purchase
+      if dialog.date() not in self.active_account.account_values_by_date:
+        print("date not found")
+      else:
+        print("date found")
 
 
   # misc dialog management functions

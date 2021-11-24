@@ -43,6 +43,7 @@ class Ui_addFund(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.initialUnitsEdit.sizePolicy().hasHeightForWidth())
         self.initialUnitsEdit.setSizePolicy(sizePolicy)
+        self.initialUnitsEdit.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.initialUnitsEdit.setObjectName("initialUnitsEdit")
         self.horizontalLayout_4.addWidget(self.initialUnitsEdit)
         self.verticalLayout.addLayout(self.horizontalLayout_4)

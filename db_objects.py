@@ -19,11 +19,13 @@ class Account():
     #dictionary to map fund ids to fund names
     self.fund_names = {}
     #dictionary to map AccountValue ids (account valuation on specific date) to AccountValue objects
-    self.account_values = {}
+    self.account_values_by_id = {}
     #dictionary to map date strings to account_value objects
-    self.date_account_value = {}
+    self.account_values_by_date = {}
     #dictionary to map fund.id to initial units
     self.initial_fund_units = {}
+    #list of account values sorted by date
+    self.account_values = []
 
   def __str__(self):
     return("Name = %s, Brokerage = %s, Account Number = %s" % (self.name, self.brokerage, self.account_no))
@@ -47,11 +49,14 @@ class Account():
 
   def fetchValues(self, con):
     """AccountValues for the given account, sorted by date"""
-    self.values = []
+    self.account_values = []
     cursor = con.cursor()
-    for row in cursor.execute("Select id, date, value, account_id FROM AccountValue \
-                              WHERE account_id = %d ORDER BY date" % (self.id)):
-     self.values += [makeAccountValue(row)]
+    for row in cursor.execute("Select id, date, value, account_id FROM AccountValue " \
+                                "WHERE account_id = %d ORDER BY date" % (self.id)):
+      v = makeAccountValue(row)
+      self.account_values += [v]
+      self.account_values_by_date[v.date] = v
+
 
   def initialize(self, con):
     self.fetchFunds(con)
@@ -71,11 +76,10 @@ class Account():
   def processPurchases(self, con):
     self.purchases = []
     last_units = copy(self.initial_fund_units)
-    for v in self.values:
-      self.account_values[v.id] = v
-      self.date_account_value[v.date] = v
+    for v in self.account_values:
+      self.account_values_by_id[v.id] = v
       total_units = sum(last_units.values())
-      v.unit_price = v.price/total_units
+      v.unit_price = v.value/total_units
       purchases = v.fetchUnitPurchases(con, self.funds)
       for p in purchases:
         p.units_purchased = p.amount/v.unit_price
@@ -124,18 +128,18 @@ def makeFund(tuple4):
 
 class AccountValue():
 
-  def __init__(self, account_value_id, date, price, account_id):
+  def __init__(self, account_value_id, date, value, account_id):
     self.id = account_value_id
     self.date = date
-    self.price = price
+    self.value = value
     self.account_id = account_id
 
   def __str__(self):
-    return "id = %d, date = %s, price = %f, account_id = %d" % (self.id, self.date, self.price, self.account_id)
+    return "id = %d, date = %s, value = %f, account_id = %d" % (self.id, self.date, self.value, self.account_id)
 
   def insertIntoDB(self, con):
     sql_string = ('INSERT into AccountValue (date, value, account_id) VALUES("%s", %f, %d)'
-      % (self.date, self.price,  self.account_id))
+      % (self.date, self.value,  self.account_id))
     cursor = con.execute(sql_string)
     self.id = cursor.lastrowid
     con.commit()
