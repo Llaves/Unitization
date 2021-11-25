@@ -46,6 +46,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
                                  "will change starting with the initial purchases.")
       msg_box.setStandardButtons(QMessageBox.Save | QMessageBox.Discard)
       msg_box.setDefaultButton(QMessageBox.Discard)
+      msg_box.setWindowTitle("UnitTracker Warning")
       if (msg_box.exec() == QMessageBox.Discard):
         self.initial_units.setText("0")
 

@@ -66,6 +66,28 @@ class Account():
     self.funds.remove(fund)
     self.processPurchases(con)
 
+  # the following delete functions are only for use in deleting an entire account. They do not clean up
+  # the auxilliary indices and such.
+
+  def deleteAllFunds(self, con):
+    sql_string = "DELETE FROM Funds WHERE account_id = %d" % self.id
+    con.execute(sql_string)
+    con.commit()
+
+  def deleteAllAccountValues(self, con):
+    sql_string = "DELETE FROM AccountValue WHERE account_id = %d" % self.id
+    con.execute(sql_string)
+    con.commit()
+
+  def deleteAccount(self, con):
+    self.deleteAllFunds(con)
+    self.deleteAllAccountValues(con)
+    sql_string = "DELETE FROM Accounts WHERE id = %d" % self.id
+    con.execute(sql_string)
+    con.commit()
+
+
+
 
 
 
@@ -96,20 +118,24 @@ class Account():
     for f in self.funds:
       self.initial_fund_units[f.id] = f.initial_units
 
+  def initialUnitValuesIsZero(self):
+    return sum(self.initial_fund_units.values()) == 0
+
   def processPurchases(self, con):
     self.purchases = []
     last_units = copy(self.initial_fund_units)
-    for v in self.account_values:
-      self.account_values_by_id[v.id] = v
-      total_units = sum(last_units.values())
-      v.unit_price = v.value/total_units
-      purchases = v.fetchUnitPurchases(con, self.funds)
-      for p in purchases:
-        p.units_purchased = p.amount/v.unit_price
-        last_units[p.fund_id] += p.units_purchased
-        self.purchases += [p]
-      v.units_out = copy(last_units)
-      print(v.units_out)
+    if not self.initialUnitValuesIsZero():
+      for v in self.account_values:
+        self.account_values_by_id[v.id] = v
+        total_units = sum(last_units.values())
+        v.unit_price = v.value/total_units
+        purchases = v.fetchUnitPurchases(con, self.funds)
+        for p in purchases:
+          p.units_purchased = p.amount/v.unit_price
+          last_units[p.fund_id] += p.units_purchased
+          self.purchases += [p]
+        v.units_out = copy(last_units)
+        print(v.units_out)
     self.end_units = copy(last_units)
 
 

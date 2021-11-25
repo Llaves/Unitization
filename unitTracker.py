@@ -32,6 +32,7 @@ class ItemRightAlign(QtWidgets.QTableWidgetItem):
     QtWidgets.QTableWidgetItem.__init__(self, item)
     self.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
 
+
 #%%
 class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def __init__(self, parent=None):
@@ -49,9 +50,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     # hide the tab view until we have an active account
     self.tabWidget.setVisible(False)
     # disable edit for tables
-    self.disableTableEdit(self.funds_table)
-    self.disableTableEdit(self.purchases_table)
-    self.disableTableEdit(self.account_values_table)
+    self.disableEditAllTables()
     self.funds_table.setMaximumWidth(self.tableTotalWidth(self.funds_table) + 2)
     self.purchases_table.setMaximumWidth(self.tableTotalWidth(self.purchases_table) + 2)
     self.account_values_table.setMaximumWidth(self.tableTotalWidth(self.account_values_table) + 2)
@@ -59,7 +58,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
     #  disable menu items until account is loaded
     self.menuFunds.setEnabled(False)
-    self.menuPurchases.setEnabled(False)
 
 
 
@@ -76,9 +74,13 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     #  connect the menu items to methods
     self.actionNew_Account.triggered.connect(self.newAccount)
     self.actionOpen_Account.triggered.connect(self.openAccount)
+    self.actionDelete_Account.triggered.connect(self.deleteAccount)
     self.actionNew_Fund.triggered.connect(self.newFund)
     self.actionPurchase_Fund.triggered.connect(self.purchaseFund)
     self.actionDelete_Fund.triggered.connect(self.deleteFund)
+    self.actionEdit_Mode.triggered.connect(self.editMode)
+    self.actionNo_Warnings.triggered.connect(self.noWarnings)
+
 
     # advanced mode options
     self.warnings_enabled = True
@@ -88,22 +90,71 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.con.close()
     self.close()
 
+  def noInitialUnitsWarning(self):
+    msg_box = QMessageBox()
+    msg_box.setText("You must have at least one fund with non-zero initial units in order "\
+                    "for entries to show in the purchases tab")
+
+    msg_box.setWindowTitle("UnitTracker Warning")
+    msg_box.setStandardButtons(QMessageBox.Close)
+    msg_box.exec()
+
+  def dangerousEditWarning(self):
+    if self.warnings_enabled:
+      msg_box = QMessageBox()
+      msg_box.setText("Warning: The edit you are about to perform cannot be undone")
+      msg_box.setInformativeText(" This edit may result in recomputation of all fund units dating back" \
+                                 " to the start of this account\n" \
+                                   "Click Yes to continue with this edit, otherwise click Cancel")
+      msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+      msg_box.setIcon(QMessageBox.Warning)
+      msg_box.setWindowTitle("UnitTracker Warning")
+      msg_box.setDefaultButton(QMessageBox.Cancel)
+      return (msg_box.exec() == QMessageBox.Yes)
+    else:
+      return True
+
+
   def newAccount(self):
     print("new Account clicked")
     dialog = AddAccountDialog(self)
-    dialog.open()
+    if dialog.exec() == QtWidgets.QDialog.Accepted:
+      self.noInitialUnitsWarning()
+
 
 
   def openAccount(self):
     dialog = SelectAccountDialog(self)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       self.setActiveAccount(dialog.selectedAccount())
+      if self.active_account.initialUnitsIsZero():
+        self.noInitialUnitsWarning()()
+
+  def deleteAccount(self):
+    if self.dangerousEditWarning():
+      dialog = SelectAccountDialog(self)
+      dialog.setWindowTitle("Select Account to Delete")
+      if (dialog.exec() == QtWidgets.QDialog.Accepted):
+        if dialog.selectedAccount() == self.active_account:
+          msg_box = QMessageBox()
+          msg_box.setText("You cannot delete the currently active account")
+          msg_box.setInformativeText("Open a different account and try again")
+          msg_box.setStandardButtons(QMessageBox.Close )
+          msg_box.setWindowTitle("UnitTracker Warning")
+          msg_box.exec()
+        else:
+          acct = dialog.selectedAccount()
+          acct.deleteAccount(self.con)
+          self.accounts.remove(acct)
+
+
+
 
   def populateFundsTable(self):
     row = 0
     self.funds_table.clearContents()
     for f in self.active_account.funds:
-      self.funds_table.setItem(row, 0, FundTableItem(f))  # QtWidgets.QTableWidgetItem(f.name))
+      self.funds_table.setItem(row, 0, FundTableItem(f))
       self.funds_table.setItem(row, 1, ItemRightAlign(str(f.initial_units)))
       end_units =self.active_account.end_units[f.id]
       self.funds_table.setItem(row, 2, ItemRightAlign("%.3f" % end_units))
@@ -149,7 +200,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tabWidget.setVisible(True)
       # enable menu items now that we have an account
       self.menuFunds.setEnabled(True)
-      self.menuPurchases.setEnabled(True)
 
 
 
@@ -190,25 +240,40 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.populateFundsTable()
 
   def deleteFund(self):
-    if self.warnings_enabled:
-      msg_box = QMessageBox()
-      msg_box.setText("Warning: deleted funds cannot be restored.")
-      msg_box.setInformativeText("Deleting a fund will result in recomputation of historical"\
-                                 " unit values for remaining funds. Consider using the Hide Empty Funds "\
-                                   "option in the Advanced menu")
+    if self.dangerousEditWarning():
+      dialog = DeleteFundDialog(self)
+      if (dialog.exec() == QtWidgets.QDialog().Accepted):
+        print(dialog.fund())
+        self.active_account.deleteFund(dialog.fund(), self.con)
+        self.populateFundsTable()
+        self.populatePurchasesTable()
 
-      msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-      msg_box.setIcon(QMessageBox.Warning)
+  def editMode(self):
+    if self.actionEdit_Mode.isChecked():
+      self.actionDelete_Account.setEnabled(True)
+      self.actionDelete_Fund.setEnabled(True)
+      self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
+      self.enableEditAllTables()
+      msg_box = QMessageBox()
+      msg_box.setText("You have enabled potentially dangerous edits that cannot be undone.\n"\
+                      "Proceed with care")
+      msg_box.setStandardButtons(QMessageBox.Close)
       msg_box.setWindowTitle("UnitTracker Warning")
-      msg_box.setDefaultButton(QMessageBox.Discard)
-      if (msg_box.exec() == QMessageBox.Yes):
-        print ("deleting fund")
-        dialog = DeleteFundDialog(self)
-        if (dialog.exec() == QtWidgets.QDialog().Accepted):
-          print(dialog.fund())
-          self.active_account.deleteFund(dialog.fund(), self.con)
-          self.populateFundsTable()
-          self.populatePurchasesTable()
+      msg_box.exec()
+    else:
+      self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
+      self.disableEditAllTables()
+
+  def fundTableEdit(self, row, col):
+    print ("FundTableEdit row = %d col = %d" % (row,col))
+    print (self.funds_table.item(row, 0).fund)
+
+    self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), True)
+
+
+
+  def noWarnings(self):
+    self.warnings_enabled = not self.actionNo_Warnings.isChecked()
 
 
   # misc dialog management functions
@@ -218,10 +283,26 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       width += table.columnWidth(col)
     return width
 
+  def disableEditAllTables(self):
+    self.disableTableEdit(self.purchases_table)
+    self.disableTableEdit(self.funds_table)
+    self.disableTableEdit(self.account_values_table)
+
   def disableTableEdit(self, table):
+    table.clearSelection()
     table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers);
     table.setFocusPolicy(QtCore.Qt.NoFocus);
     table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection);
+
+
+  def enableEditAllTables(self):
+    self.enableTableEdit(self.purchases_table)
+    self.enableTableEdit(self.funds_table)
+    self.enableTableEdit(self.account_values_table)
+
+  def enableTableEdit(self, table):
+    table.setSelectionMode(QtWidgets.QAbstractItemView.ContiguousSelection);
+    table.setFocusPolicy(QtCore.Qt.ClickFocus)
 
   def tableHeaderFix(self, table):
     table.setStyleSheet(

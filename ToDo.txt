@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Nov 20 16:13:02 2021
-
-@author: David
-"""
-
-AddFundDialog
-  add extreme warning if trying to set initial units after purchases made
 
 do some checking after insertIntoDB before committing
 
@@ -15,7 +6,8 @@ Purchase Fund dialog
   if new purchase date is before last date, give severe warning
   if account value is way out of line with last account value, give warning
 
-Advanced Mode
-	enable editing
-	
+
 Hide FUnds with zero units
+
+
+Implement Close Account and add this to Delete Account msg?
