@@ -9,7 +9,7 @@ from add_account_dialog import *
 from db_objects import Account
 
 class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
-  def __init__(self, parent):
+  def __init__(self, parent, edit_mode = False, old_account = None):
     QtWidgets.QDialog.__init__(self, parent)
     self.setupUi(self)
     self.btn_save = self.buttonBox.button(QtWidgets.QDialogButtonBox.Save)
@@ -18,6 +18,13 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
     self.acct_name.textChanged.connect(self.onTextChanged)
     self.brokerage.textChanged.connect(self.onTextChanged)
     self.parent = parent
+    self.edit_mode = edit_mode
+    self.old_account = old_account
+
+    if self.edit_mode:
+      self.acct_name.setText(self.old_account.name)
+      self.brokerage.setText(self.old_account.brokerage)
+      self.account_number.setText(self.old_account.account_no)
 
   @QtCore.pyqtSlot()
   def onTextChanged(self):
@@ -26,9 +33,7 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
                               and bool(self.brokerage.text()))
 
   def accept(self):
-    a = Account(0, self.acct_name.text(), self.brokerage.text(), self.account_number.text())
-    a.insertIntoDB(self.parent.con)
-    self.parent.con.commit()
-    self.parent.accounts += [a]
-    self.parent.setActiveAccount(a)
+    self.account = Account(0, self.acct_name.text(), self.brokerage.text(), self.account_number.text())
+    if self.edit_mode:
+      self.account.id = self.old_account.id
     QtWidgets.QDialog.accept(self)

@@ -33,6 +33,11 @@ class Account():
   def __str__(self):
     return("Name = %s, Brokerage = %s, Account Number = %s" % (self.name, self.brokerage, self.account_no))
 
+  def copy(self, account):
+    self.id = account.id
+    self.name = account.name
+    self.brokerage = account.brokerage
+    self.account_no = account.account_no
 
   def insertIntoDB(self, con):
     sql_string = ("""INSERT into Accounts (name, brokerage, account_no)
@@ -86,7 +91,12 @@ class Account():
     con.execute(sql_string)
     con.commit()
 
-
+  def updateAccount(self, con):
+    sql_string = 'UPDATE Accounts SET name = "%s", brokerage = "%s", account_no = "%s" ' \
+      'WHERE id = %d'  % (self.name, self.brokerage, self.account_no, self.id)
+    print(sql_string)
+    con.execute(sql_string)
+    con.commit()
 
 
 

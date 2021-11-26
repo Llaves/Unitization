@@ -74,9 +74,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     #  connect the menu items to methods
     self.actionNew_Account.triggered.connect(self.newAccount)
     self.actionOpen_Account.triggered.connect(self.openAccount)
+    self.actionEdit_Account.triggered.connect(self.editAccount)
     self.actionDelete_Account.triggered.connect(self.deleteAccount)
     self.actionNew_Fund.triggered.connect(self.newFund)
     self.actionPurchase_Fund.triggered.connect(self.purchaseFund)
+    self.actionEdit_Fund.triggered.connect(self.editFund)
     self.actionDelete_Fund.triggered.connect(self.deleteFund)
     self.actionEdit_Mode.triggered.connect(self.editMode)
     self.actionNo_Warnings.triggered.connect(self.noWarnings)
@@ -119,6 +121,10 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     print("new Account clicked")
     dialog = AddAccountDialog(self)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
+      dialog.account.insertIntoDB(self.con)
+      self.con.commit()
+      self.accounts += [dialog.account]
+      self.setActiveAccount(dialog.account)
       self.noInitialUnitsWarning()
 
 
@@ -127,8 +133,19 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     dialog = SelectAccountDialog(self)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       self.setActiveAccount(dialog.selectedAccount())
-      if self.active_account.initialUnitsIsZero():
+      if self.active_account.initialUnitsWaluesIsZero():
         self.noInitialUnitsWarning()()
+
+  def editAccount(self):
+    if self.dangerousEditWarning():
+      dialog = AddAccountDialog(self, True, self.active_account)
+      dialog.setWindowTitle("Select account to edit")
+      if (dialog.exec() == QtWidgets.QDialog.Accepted):
+        print ("Edit account")
+        print (dialog.account)
+        self.active_account.copy(dialog.account)
+        self.active_account.updateAccount(self.con)
+        self.fillAccountSummaryBox()
 
   def deleteAccount(self):
     if self.dangerousEditWarning():
@@ -192,16 +209,20 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       # populate the accounts values table in the account values tab
       self.populateAccountValuesTable()
 
-      # set the account summary box
-      self.account_name.setText(self.active_account.name)
-      self.brokerage.setText(self.active_account.brokerage)
-      self.account_number.setText(self.active_account.account_no)
+      self.fillAccountSummaryBox()
       # show the tab view
       self.tabWidget.setVisible(True)
       # enable menu items now that we have an account
       self.menuFunds.setEnabled(True)
+      #enable the edit account menu item only if advanced edit is enabled
+      if self.actionEdit_Mode.isChecked():
+        self.actionEdit_Account.setEnabled(True)
 
-
+  def fillAccountSummaryBox(self):
+      # set the account summary box
+      self.account_name.setText(self.active_account.name)
+      self.brokerage.setText(self.active_account.brokerage)
+      self.account_number.setText(self.active_account.account_no)
 
   def newFund(self):
     dialog = AddFundDialog(self)
@@ -239,6 +260,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.populatePurchasesTable()
       self.populateFundsTable()
 
+  def editFund(self):
+    pass
+
   def deleteFund(self):
     if self.dangerousEditWarning():
       dialog = DeleteFundDialog(self)
@@ -251,18 +275,28 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def editMode(self):
     if self.actionEdit_Mode.isChecked():
       self.actionDelete_Account.setEnabled(True)
+      self.actionEdit_Fund.setEnabled(True)
       self.actionDelete_Fund.setEnabled(True)
       self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
       self.enableEditAllTables()
-      msg_box = QMessageBox()
-      msg_box.setText("You have enabled potentially dangerous edits that cannot be undone.\n"\
-                      "Proceed with care")
-      msg_box.setStandardButtons(QMessageBox.Close)
-      msg_box.setWindowTitle("UnitTracker Warning")
-      msg_box.exec()
+      if self.active_account != None:
+        self.actionEdit_Account.setEnabled(True)
+      if self.warnings_enabled:
+        msg_box = QMessageBox()
+        msg_box.setText("You have enabled potentially dangerous edits that cannot be undone.\n"\
+                        "Proceed with care")
+        msg_box.setStandardButtons(QMessageBox.Close)
+        msg_box.setWindowTitle("UnitTracker Warning")
+        msg_box.exec()
     else:
       self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
       self.disableEditAllTables()
+      self.actionEdit_Account.setEnabled(False)
+      self.actionDelete_Account.setEnabled(False)
+      self.actionEdit_Fund.setEnabled(False)
+      self.actionDelete_Fund.setEnabled(False)
+
+
 
   def fundTableEdit(self, row, col):
     print ("FundTableEdit row = %d col = %d" % (row,col))

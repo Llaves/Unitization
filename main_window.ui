@@ -241,6 +241,7 @@
     </property>
     <addaction name="actionOpen_Account"/>
     <addaction name="actionNew_Account"/>
+    <addaction name="actionEdit_Account"/>
     <addaction name="actionDelete_Account"/>
    </widget>
    <widget class="QMenu" name="menuFunds">
@@ -249,6 +250,7 @@
     </property>
     <addaction name="actionNew_Fund"/>
     <addaction name="actionPurchase_Fund"/>
+    <addaction name="actionEdit_Fund"/>
     <addaction name="actionDelete_Fund"/>
    </widget>
    <widget class="QMenu" name="menuAdvanced">
@@ -321,6 +323,22 @@
    </property>
    <property name="text">
     <string>Delete Account</string>
+   </property>
+  </action>
+  <action name="actionEdit_Account">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Edit Account</string>
+   </property>
+  </action>
+  <action name="actionEdit_Fund">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Edit Fund</string>
    </property>
   </action>
  </widget>
