@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1893, 1367)
+        MainWindow.resize(1893, 1386)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
@@ -123,12 +123,20 @@ class Ui_MainWindow(object):
         self.actionEdit_Fund = QtWidgets.QAction(MainWindow)
         self.actionEdit_Fund.setEnabled(False)
         self.actionEdit_Fund.setObjectName("actionEdit_Fund")
+        self.actionExport_to_Excel = QtWidgets.QAction(MainWindow)
+        self.actionExport_to_Excel.setEnabled(False)
+        self.actionExport_to_Excel.setObjectName("actionExport_to_Excel")
+        self.actionHide_Empty = QtWidgets.QAction(MainWindow)
+        self.actionHide_Empty.setCheckable(True)
+        self.actionHide_Empty.setObjectName("actionHide_Empty")
         self.menuAccounts.addAction(self.actionOpen_Account)
         self.menuAccounts.addAction(self.actionNew_Account)
         self.menuAccounts.addAction(self.actionEdit_Account)
         self.menuAccounts.addAction(self.actionDelete_Account)
+        self.menuAccounts.addAction(self.actionExport_to_Excel)
         self.menuFunds.addAction(self.actionNew_Fund)
         self.menuFunds.addAction(self.actionPurchase_Fund)
+        self.menuFunds.addAction(self.actionHide_Empty)
         self.menuAdvanced.addAction(self.actionEdit_Mode)
         self.menuAdvanced.addAction(self.actionNo_Warnings)
         self.menuBar.addAction(self.menuAccounts.menuAction())
@@ -136,7 +144,7 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menuAdvanced.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -159,4 +167,6 @@ class Ui_MainWindow(object):
         self.actionDelete_Account.setText(_translate("MainWindow", "Delete Account"))
         self.actionEdit_Account.setText(_translate("MainWindow", "Edit Account"))
         self.actionEdit_Fund.setText(_translate("MainWindow", "Edit Fund"))
+        self.actionExport_to_Excel.setText(_translate("MainWindow", "Export to Excel"))
+        self.actionHide_Empty.setText(_translate("MainWindow", "Hide Empty"))
 

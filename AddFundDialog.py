@@ -31,11 +31,15 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
       # although we initialize to 0, user could change this to blank, which would be invalid, but still
       # pass validator
       self.initial_units.textChanged.connect(self.onTextChanged)
+      self.delete_fund.hide()
+      self.delete_fund.stateChanged.connect(self.onCheckChange)
 
       if self.edit_mode:
         self.fund_name.setText(self.old_fund.name)
         self.initial_units.setText(str(self.old_fund.initial_units))
         self.setWindowTitle("Edit Fund")
+        self.delete_fund.show()
+
 
 
 
@@ -63,6 +67,17 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
       msg_box.setWindowTitle("UnitTracker Warning")
       if (msg_box.exec() == QMessageBox.Discard):
         self.initial_units.setText("0")
+
+  def onCheckChange(self):
+    if self.delete_fund.isChecked():
+      self.fund_name.setEnabled(False)
+      self.initial_units.setEnabled(False)
+    else:
+      self.fund_name.setEnabled(True)
+      self.initial_units.setEnabled(True)
+
+  def delete(self):
+    return self.delete_fund.isChecked()
 
   def fundName(self):
     return self.fund_name.text()

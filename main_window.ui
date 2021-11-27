@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1893</width>
-    <height>1367</height>
+    <height>1386</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -243,6 +243,7 @@
     <addaction name="actionNew_Account"/>
     <addaction name="actionEdit_Account"/>
     <addaction name="actionDelete_Account"/>
+    <addaction name="actionExport_to_Excel"/>
    </widget>
    <widget class="QMenu" name="menuFunds">
     <property name="title">
@@ -250,6 +251,7 @@
     </property>
     <addaction name="actionNew_Fund"/>
     <addaction name="actionPurchase_Fund"/>
+    <addaction name="actionHide_Empty"/>
    </widget>
    <widget class="QMenu" name="menuAdvanced">
     <property name="title">
@@ -337,6 +339,22 @@
    </property>
    <property name="text">
     <string>Edit Fund</string>
+   </property>
+  </action>
+  <action name="actionExport_to_Excel">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Export to Excel</string>
+   </property>
+  </action>
+  <action name="actionHide_Empty">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Hide Empty</string>
    </property>
   </action>
  </widget>

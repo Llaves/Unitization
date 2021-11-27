@@ -76,8 +76,10 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.actionOpen_Account.triggered.connect(self.openAccount)
     self.actionEdit_Account.triggered.connect(self.editAccount)
     self.actionDelete_Account.triggered.connect(self.deleteAccount)
+    self.actionExport_to_Excel.triggered.connect(self.exportToExcel)
     self.actionNew_Fund.triggered.connect(self.newFund)
     self.actionPurchase_Fund.triggered.connect(self.purchaseFund)
+    self.actionHide_Empty.toggled.connect(self.hideEmptyFunds)
     self.actionEdit_Mode.triggered.connect(self.editMode)
     self.actionNo_Warnings.triggered.connect(self.noWarnings)
 
@@ -199,6 +201,14 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       #enable the edit account menu item only if advanced edit is enabled
       if self.actionEdit_Mode.isChecked():
         self.actionEdit_Account.setEnabled(True)
+      self.actionExport_to_Excel.setEnabled(True)
+
+  def exportToExcel(self):
+    (file_name, filter) = QtWidgets.QFileDialog.getSaveFileName(self, "Excel File Name",
+                                                                directory = self.active_account.name + ".xlsx",
+                                                                filter = ("Excel Files (*.xlsx) ;; All Files (*.*)"))
+    if file_name != '':
+      self.active_account.exportXLSX(file_name)
 
 
 ###############################
@@ -244,6 +254,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.populatePurchasesTable()
       self.populateFundsTable()
 
+  def hideEmptyFunds(self):
+      self.populateFundsTable()
+      self.populatePurchasesTable()
+
+
 ###############################
 ##
 ##  Advanced Menu
@@ -256,7 +271,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     if self.actionEdit_Mode.isChecked():
       self.actionDelete_Account.setEnabled(True)
       self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
-      self.purchases_table.cellDoubleClicked.connect(self.purhasesTableEdit)
+      self.purchases_table.cellDoubleClicked.connect(self.purchasesTableEdit)
       self.enableEditAllTables()
       if self.active_account != None:
         self.actionEdit_Account.setEnabled(True)
@@ -269,7 +284,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         msg_box.exec()
     else:
       self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
-      self.purchases_table.cellDoubleClicked.disconnect(self.purhasesTableEdit)
+      self.purchases_table.cellDoubleClicked.disconnect(self.purchasesTableEdit)
       self.disableEditAllTables()
       self.actionEdit_Account.setEnabled(False)
       self.actionDelete_Account.setEnabled(False)
@@ -291,18 +306,30 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), True)
     dialog = AddFundDialog(self, True, fund)
     if dialog.exec() == QtWidgets.QDialog.Accepted:
-      fund.copy(dialog.fund)
-      fund.updateToDB(self.con)
-      if dialog.initialUnitsChanged():
-        self.active_account.fundChanged(self.con)
+      if dialog.delete():
+        if self.warnings_enabled:
+          msg_box = QMessageBox()
+          msg_box.setText("Deleting a fund cannot be undone. You should only delete a fund if it was " \
+                          "created in error. If you're just trying to hide the fund because it has " \
+                            "been zeroed out, use Hide Empty on the Funds menu" \
+                              "Click Yes to continue with delete, otherwise click Cancel")
+          msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+          msg_box.setWindowTitle("UnitTracker Warning")
+          if msg_box.exec() == QMessageBox.Yes:
+            self.active_account.deleteFund(fund, self.con)
+        else:
+            self.active_account.deleteFund(fund, self.con)
+      else:
+        fund.copy(dialog.fund)
+        fund.updateToDB(self.con)
+        if dialog.initialUnitsChanged():
+          self.active_account.fundChanged(self.con)
       self.populateFundsTable()
       self.populatePurchasesTable()
 
 
       #if delete
-        # self.active_account.deleteFund(dialog.fund(), self.con)
-        # self.populateFundsTable()
-        # self.populatePurchasesTable()
+
 
   def purchasesTableEdit(self, row, col):
       print ("PurchasesTableEdit row = %d col = %d" % (row,col))
@@ -323,25 +350,29 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.clearContents()
     self.funds_table.setRowCount(len(self.active_account.funds))
     for f in self.active_account.funds:
-      self.funds_table.setItem(row, 0, FundTableItem(f))
-      self.funds_table.setItem(row, 1, ItemRightAlign(str(f.initial_units)))
-      end_units =self.active_account.end_units[f.id]
-      self.funds_table.setItem(row, 2, ItemRightAlign("%.3f" % end_units))
-      row += 1
+      if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0):
+        self.funds_table.setItem(row, 0, FundTableItem(f))
+        self.funds_table.setItem(row, 1, ItemRightAlign(str(f.initial_units)))
+        end_units =self.active_account.end_units[f.id]
+        self.funds_table.setItem(row, 2, ItemRightAlign("%.3f" % end_units))
+        row += 1
+    self.funds_table.setRowCount(row)
 
   def populatePurchasesTable(self):
     row = 0
     self.purchases_table.clearContents()
     self.purchases_table.setRowCount(len(self.active_account.purchases))
     for p in self.active_account.purchases:
-      self.purchases_table.setItem(row, 0,
-                                   QtWidgets.QTableWidgetItem(
-                                     self.active_account.account_values_by_id[p.date_id].date))
-      self.purchases_table.setItem(row, 1,
-                                   QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
-      self.purchases_table.setItem(row, 2, ItemRightAlign("$%.2f" % p.amount))
-      self.purchases_table.setItem(row, 3, ItemRightAlign("%.3f" % p.units_purchased))
-      row += 1
+      if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[p.fund_id] == 0):
+        self.purchases_table.setItem(row, 0,
+                                     QtWidgets.QTableWidgetItem(
+                                       self.active_account.account_values_by_id[p.date_id].date))
+        self.purchases_table.setItem(row, 1,
+                                     QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
+        self.purchases_table.setItem(row, 2, ItemRightAlign("$%.2f" % p.amount))
+        self.purchases_table.setItem(row, 3, ItemRightAlign("%.3f" % p.units_purchased))
+        row += 1
+    self.purchases_table.setRowCount(row)
 
   def populateAccountValuesTable(self):
     row = 0

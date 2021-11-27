@@ -47,9 +47,10 @@ class Ui_addFund(object):
         self.initial_units.setObjectName("initial_units")
         self.horizontalLayout_4.addWidget(self.initial_units)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
-        self.deleteFund = QtWidgets.QCheckBox(addFund)
-        self.deleteFund.setGeometry(QtCore.QRect(220, 160, 161, 29))
-        self.deleteFund.setObjectName("deleteFund")
+        self.delete_fund = QtWidgets.QCheckBox(addFund)
+        self.delete_fund.setEnabled(True)
+        self.delete_fund.setGeometry(QtCore.QRect(220, 160, 161, 29))
+        self.delete_fund.setObjectName("delete_fund")
 
         self.retranslateUi(addFund)
         self.buttonBox.accepted.connect(addFund.accept)
@@ -61,5 +62,5 @@ class Ui_addFund(object):
         addFund.setWindowTitle(_translate("addFund", "Add Fund"))
         self.label.setText(_translate("addFund", "Fund Name"))
         self.label_2.setText(_translate("addFund", "Initial Units"))
-        self.deleteFund.setText(_translate("addFund", "Delete Fund"))
+        self.delete_fund.setText(_translate("addFund", "Delete Fund"))
 

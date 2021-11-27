@@ -79,7 +79,10 @@
     </item>
    </layout>
   </widget>
-  <widget class="QCheckBox" name="deleteFund">
+  <widget class="QCheckBox" name="delete_fund">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>220</x>
