@@ -2,6 +2,7 @@
 
 *.bak
 *.db
+*.xlsx
 
 
 .pylint.d/*
