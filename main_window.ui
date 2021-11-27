@@ -250,8 +250,6 @@
     </property>
     <addaction name="actionNew_Fund"/>
     <addaction name="actionPurchase_Fund"/>
-    <addaction name="actionEdit_Fund"/>
-    <addaction name="actionDelete_Fund"/>
    </widget>
    <widget class="QMenu" name="menuAdvanced">
     <property name="title">

@@ -7,6 +7,7 @@ Created on Thu Nov 18 11:53:31 2021
 
 from add_account_dialog import *
 from db_objects import Account
+from copy import copy
 
 class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
   def __init__(self, parent, edit_mode = False, old_account = None):
@@ -19,12 +20,13 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
     self.brokerage.textChanged.connect(self.onTextChanged)
     self.parent = parent
     self.edit_mode = edit_mode
-    self.old_account = old_account
+    self.old_account = copy(old_account)
 
     if self.edit_mode:
       self.acct_name.setText(self.old_account.name)
       self.brokerage.setText(self.old_account.brokerage)
       self.account_number.setText(self.old_account.account_no)
+      self.setWindowTitle("Edit current account")
 
   @QtCore.pyqtSlot()
   def onTextChanged(self):

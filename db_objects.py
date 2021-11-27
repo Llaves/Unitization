@@ -7,6 +7,7 @@ Created on Fri Nov  5 17:41:16 2021
 
 from exceptions import *
 from copy import copy
+from openpyxl import Workbook
 
 
 class Account():
@@ -61,6 +62,10 @@ class Account():
     self.initialUnitValues()
     self.processPurchases(con)
 
+  def fundChanged(self, con):
+    self.initialUnitValues()
+    self.processPurchases(con)
+
   def deleteFund(self, fund, con):
     fund.deletePurchases(con)
     sql_string = "DELETE FROM Funds WHERE id = %d" % fund.id
@@ -91,15 +96,12 @@ class Account():
     con.execute(sql_string)
     con.commit()
 
-  def updateAccount(self, con):
+  def updateToDB(self, con):
     sql_string = 'UPDATE Accounts SET name = "%s", brokerage = "%s", account_no = "%s" ' \
       'WHERE id = %d'  % (self.name, self.brokerage, self.account_no, self.id)
     print(sql_string)
     con.execute(sql_string)
     con.commit()
-
-
-
 
   def fetchValues(self, con):
     """AccountValues for the given account, sorted by date"""
@@ -115,14 +117,11 @@ class Account():
     #the list is sorted, so sort to maintain order
     self.account_values.sort(key = lambda av: av.date)
 
-
   def initialize(self, con):
     self.fetchFunds(con)
     self.fetchValues(con)
     self.initialUnitValues()
     self.processPurchases(con)
-
-
 
   def initialUnitValues(self):
     for f in self.funds:
@@ -148,7 +147,36 @@ class Account():
         print(v.units_out)
     self.end_units = copy(last_units)
 
+  def exportXLSX(self, file_name):
+    file_name = "%s.xlsx" % self.name
+    wbk = Workbook()
+    funds_sheet = wbk.active
+    funds_sheet.title = "Funds"
+    funds_sheet.append(["Name", "Initial Units", "Ending Units"])
+    funds_sheet.column_dimensions['A'].width = 25
+    funds_sheet.column_dimensions['B'].width = 15
+    funds_sheet.column_dimensions['C'].width = 15
+    for f in self.funds:
+      funds_sheet.append([f.name, f.initial_units, self.end_units[f.id]])
+    purchases_sheet = wbk.create_sheet("Purchases")
+    purchases_sheet.append(["Date", "Fund Name", "Amount", "Units Purchased"])
+    purchases_sheet.column_dimensions['A'].width = 15
+    purchases_sheet.column_dimensions['B'].width = 25
+    purchases_sheet.column_dimensions['C'].width = 15
+    purchases_sheet.column_dimensions['D'].width = 15
+    for p in self.purchases:
+      purchases_sheet.append([self.account_values_by_id[p.date_id].date,
+                              self.fund_names[p.fund_id],
+                              p.amount, p.units_purchased])
+    account_values_sheet = wbk.create_sheet("Account Values")
+    account_values_sheet.append(["Date", "Account Value"])
+    account_values_sheet.column_dimensions['A'].width = 15
+    account_values_sheet.column_dimensions['B'].width = 15
+    for av in self.account_values:
+      account_values_sheet.append([av.date, av.value])
+    wbk.save(file_name)
 
+  ##class ends
 
 def makeAccount(tuple4):
   if len(tuple4) != 4:
@@ -156,7 +184,11 @@ def makeAccount(tuple4):
   return Account(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
 
-
+###############################
+##
+##  Fund
+##
+###############################
 
 
 class Fund():
@@ -171,6 +203,12 @@ class Fund():
     return "id = %d, name = %s, initial_units = %f, account_id = %d" \
       % (self.id, self.name, self.initial_units, self.account_id)
 
+  def copy(self, fund):
+    self.id = fund.id
+    self.name = fund.name
+    self.initial_units = fund.initial_units
+    self.account_id = fund.account_id
+
   def insertIntoDB(self, con):
     sql_string = ('INSERT into Funds (name, initial_units, account_id) VALUES("%s", %f,  %d)'
       % (self.name, self.initial_units, self.account_id))
@@ -178,16 +216,29 @@ class Fund():
     self.id = cursor.lastrowid
     con.commit()
 
+  def updateToDB(self, con):
+    sql_string = 'UPDATE Funds SET name = "%s", initial_units = %f, account_id = %d ' \
+      'WHERE id = %d'  % (self.name, self.initial_units, self.account_id, self.id)
+    con.execute(sql_string)
+    con.commit()
+
   def deletePurchases(self, con):
     sql_string = ('DELETE FROM UnitPurchase WHERE fund_id = %d' % self.id)
     con.execute(sql_string)
     con.commit()
+
+  ## class ends
 
 def makeFund(tuple4):
   if len(tuple4) != 4:
     raise TupleLengthError()
   return Fund(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
+###############################
+##
+##  AccountValue
+##
+###############################
 
 
 class AccountValue():
@@ -201,11 +252,24 @@ class AccountValue():
   def __str__(self):
     return "id = %d, date = %s, value = %f, account_id = %d" % (self.id, self.date, self.value, self.account_id)
 
+  def copy(self, account_value):
+    self.id = account_value.id
+    self.date = account_value.date
+    self.value = account_value.value
+    self.account_id = account_value.account_id
+
   def insertIntoDB(self, con):
     sql_string = ('INSERT into AccountValue (date, value, account_id) VALUES("%s", %f, %d)'
       % (self.date, self.value,  self.account_id))
     cursor = con.execute(sql_string)
     self.id = cursor.lastrowid
+    con.commit()
+
+  def updateToDB(self, con):
+    sql_string = 'UPDATE AccountValue SET date = "%s", value = %f, account_id = %d WHERE id = %d' \
+      % (self.date, self.value, self.account_id, self.id)
+    print(sql_string)
+    con.execute(sql_string)
     con.commit()
 
   def fetchUnitPurchases(self, con, funds):
@@ -219,11 +283,18 @@ class AccountValue():
       purchases += [makeUnitPurchase(row)]
     return purchases
 
+  ##class ends
+
 def makeAccountValue(tuple4):
   if len(tuple4) != 4:
     raise TupleLengthError()
   return AccountValue(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
+###############################
+##
+##  UnitPurchase
+##
+###############################
 
 
 class UnitPurchase():
@@ -237,6 +308,12 @@ class UnitPurchase():
   def __str__(self):
     return "id = %d, fund_id = %d, amount = %f, date_id = %d" % (self.id, self.fund_id, self.amount, self.date_id)
 
+  def copy(self, unit_purchase):
+    self.id = unit_purchase.id
+    self.fund_id = unit_purchase.fund_id
+    self.amount = unit_purchase.amount
+    self.date_id = unit_purchase.date_id
+
   def insertIntoDB(self, con):
     sql_string = ('INSERT into UnitPurchase (fund_id, amount, date_id) VALUES("%s", %f, %d)'
       % (self.fund_id, self.amount, self.date_id))
@@ -244,7 +321,26 @@ class UnitPurchase():
     self.id = cursor.lastrowid
     con.commit()
 
+  def updateToDB(self, con):
+    sql_string = 'UPDATE UnitPurchase SET fund_id = %d, amount = %f, date_id = %d WHERE id = %d' % \
+      (self.fund_id, self.amount, self.date_id, self.id)
+
+  ##class ends
+
+
 def makeUnitPurchase(tuple4):
   if len(tuple4) != 4:
     raise TupleLengthError()
   return UnitPurchase(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
+
+
+
+
+###############################
+##
+##  Helper functions
+##
+###############################
+
+def fillCell(s, r, c, v):
+  s.cell(row = r, column = c).value = v

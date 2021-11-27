@@ -129,8 +129,6 @@ class Ui_MainWindow(object):
         self.menuAccounts.addAction(self.actionDelete_Account)
         self.menuFunds.addAction(self.actionNew_Fund)
         self.menuFunds.addAction(self.actionPurchase_Fund)
-        self.menuFunds.addAction(self.actionEdit_Fund)
-        self.menuFunds.addAction(self.actionDelete_Fund)
         self.menuAdvanced.addAction(self.actionEdit_Mode)
         self.menuAdvanced.addAction(self.actionNo_Warnings)
         self.menuBar.addAction(self.menuAccounts.menuAction())

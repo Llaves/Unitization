@@ -13,9 +13,9 @@ class Ui_addFund(object):
         addFund.setObjectName("addFund")
         addFund.resize(621, 271)
         self.buttonBox = QtWidgets.QDialogButtonBox(addFund)
-        self.buttonBox.setGeometry(QtCore.QRect(-130, 180, 621, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(-150, 210, 621, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayoutWidget = QtWidgets.QWidget(addFund)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(80, 30, 481, 121))
@@ -47,6 +47,9 @@ class Ui_addFund(object):
         self.initial_units.setObjectName("initial_units")
         self.horizontalLayout_4.addWidget(self.initial_units)
         self.verticalLayout.addLayout(self.horizontalLayout_4)
+        self.deleteFund = QtWidgets.QCheckBox(addFund)
+        self.deleteFund.setGeometry(QtCore.QRect(220, 160, 161, 29))
+        self.deleteFund.setObjectName("deleteFund")
 
         self.retranslateUi(addFund)
         self.buttonBox.accepted.connect(addFund.accept)
@@ -58,4 +61,5 @@ class Ui_addFund(object):
         addFund.setWindowTitle(_translate("addFund", "Add Fund"))
         self.label.setText(_translate("addFund", "Fund Name"))
         self.label_2.setText(_translate("addFund", "Initial Units"))
+        self.deleteFund.setText(_translate("addFund", "Delete Fund"))
 
