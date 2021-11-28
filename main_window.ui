@@ -39,6 +39,9 @@
         <height>1141</height>
        </rect>
       </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
       <property name="rowCount">
        <number>10</number>
       </property>
@@ -78,6 +81,9 @@
       </property>
       <property name="gridStyle">
        <enum>Qt::SolidLine</enum>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
       </property>
       <property name="rowCount">
        <number>10</number>

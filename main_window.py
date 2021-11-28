@@ -144,13 +144,15 @@ class Ui_MainWindow(object):
         self.menuBar.addAction(self.menuAdvanced.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "UnitTracker"))
+        self.funds_table.setSortingEnabled(True)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.funds_tab), _translate("MainWindow", "Funds"))
+        self.purchases_table.setSortingEnabled(True)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.purchases_tab), _translate("MainWindow", "Purchases"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.account_values_tab), _translate("MainWindow", "Account Values"))
         self.label.setText(_translate("MainWindow", "Account Description"))

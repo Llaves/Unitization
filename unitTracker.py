@@ -27,10 +27,13 @@ class AccountValuesTableItem(QtWidgets.QTableWidgetItem):
     QtWidgets.QTableWidgetItem.__init__(self, account_value.date)
     self.account_value = account_value
 
-class ItemRightAlign(QtWidgets.QTableWidgetItem):
-  def __init__(self, item):
-    QtWidgets.QTableWidgetItem.__init__(self, item)
+class FloatTableItem(QtWidgets.QTableWidgetItem):
+  def __init__(self, format_string, num):
+    self.num = num
+    QtWidgets.QTableWidgetItem.__init__(self, format_string % num)
     self.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
+  def __lt__(self, other):
+    return self.num < other.num
 
 
 #%%
@@ -352,9 +355,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     for f in self.active_account.funds:
       if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0):
         self.funds_table.setItem(row, 0, FundTableItem(f))
-        self.funds_table.setItem(row, 1, ItemRightAlign(str(f.initial_units)))
+        self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
         end_units =self.active_account.end_units[f.id]
-        self.funds_table.setItem(row, 2, ItemRightAlign("%.3f" % end_units))
+        self.funds_table.setItem(row, 2, FloatTableItem("%.3f", end_units))
         row += 1
     self.funds_table.setRowCount(row)
 
@@ -369,8 +372,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
                                        self.active_account.account_values_by_id[p.date_id].date))
         self.purchases_table.setItem(row, 1,
                                      QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
-        self.purchases_table.setItem(row, 2, ItemRightAlign("$%.2f" % p.amount))
-        self.purchases_table.setItem(row, 3, ItemRightAlign("%.3f" % p.units_purchased))
+        self.purchases_table.setItem(row, 2, FloatTableItem("$%.2f", p.amount))
+        self.purchases_table.setItem(row, 3, FloatTableItem("%.3f", p.units_purchased))
         row += 1
     self.purchases_table.setRowCount(row)
 
@@ -380,7 +383,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.account_values_table.setRowCount(len(self.active_account.account_values))
     for av in self.active_account.account_values:
       self.account_values_table.setItem(row, 0, AccountValuesTableItem(av))
-      self.account_values_table.setItem(row, 1, ItemRightAlign("$%.2f" % av.value))
+      self.account_values_table.setItem(row, 1, FloatTableItem("$%.2f", av.value))
       row += 1
 
   def tableTotalWidth(self, table):
