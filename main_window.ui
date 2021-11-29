@@ -296,14 +296,6 @@
     <string>Purchase Fund</string>
    </property>
   </action>
-  <action name="actionDelete_Fund">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Delete Fund</string>
-   </property>
-  </action>
   <action name="actionEdit_Mode">
    <property name="checkable">
     <bool>true</bool>
@@ -337,14 +329,6 @@
    </property>
    <property name="text">
     <string>Edit Account</string>
-   </property>
-  </action>
-  <action name="actionEdit_Fund">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Edit Fund</string>
    </property>
   </action>
   <action name="actionExport_to_Excel">
