@@ -120,7 +120,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     msg_box.exec()
 
   def dangerousEditWarning(self):
-    if self.warnings_enabled:
+    if (self.warnings_enabled):
       msg_box = QMessageBox()
       msg_box.setText("Warning: The edit you are about to perform cannot be undone")
       msg_box.setInformativeText(" This edit may result in recomputation of all fund units dating back" \
@@ -143,7 +143,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def newAccount(self):
     print("new Account clicked")
     dialog = AddAccountDialog(self)
-    if dialog.exec() == QtWidgets.QDialog.Accepted:
+    if (dialog.exec() == QtWidgets.QDialog.Accepted):
       dialog.account.insertIntoDB(self.con)
       self.con.commit()
       self.accounts += [dialog.account]
@@ -154,12 +154,12 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     dialog = SelectAccountDialog(self)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       self.setActiveAccount(dialog.selectedAccount())
-      if self.active_account.initialUnitValuesIsZero():
+      if (self.active_account.initialUnitValuesIsZero()):
         self.noInitialUnitsWarning()()
 
   #edit account applies to the active account only. To edit other accounts, you must make them active
   def editAccount(self):
-    if self.dangerousEditWarning():
+    if (self.dangerousEditWarning()):
       dialog = AddAccountDialog(self, True, self.active_account)
       if (dialog.exec() == QtWidgets.QDialog.Accepted):
         print ("Edit account")
@@ -169,11 +169,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         self.fillAccountSummaryBox()
 
   def deleteAccount(self):
-    if self.dangerousEditWarning():
+    if (self.dangerousEditWarning()):
       dialog = SelectAccountDialog(self)
       dialog.setWindowTitle("Select Account to Delete")
       if (dialog.exec() == QtWidgets.QDialog.Accepted):
-        if dialog.selectedAccount() == self.active_account:
+        if (dialog.selectedAccount() == self.active_account):
           msg_box = QMessageBox()
           msg_box.setText("You cannot delete the currently active account")
           msg_box.setInformativeText("Open a different account and try again")
@@ -202,7 +202,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       # enable menu items now that we have an account
       self.menuFunds.setEnabled(True)
       #enable the edit account menu item only if advanced edit is enabled
-      if self.actionEdit_Mode.isChecked():
+      if (self.actionEdit_Mode.isChecked()):
         self.actionEdit_Account.setEnabled(True)
       self.actionExport_to_Excel.setEnabled(True)
 
@@ -210,7 +210,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     (file_name, filter) = QtWidgets.QFileDialog.getSaveFileName(self, "Excel File Name",
                                                                 directory = self.active_account.name + ".xlsx",
                                                                 filter = ("Excel Files (*.xlsx) ;; All Files (*.*)"))
-    if file_name != '':
+    if (file_name != ''):
       self.active_account.exportXLSX(file_name)
 
 
@@ -239,7 +239,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       print (dialog.fund())
       print (dialog.dollarsPurchased())
       # get existing AccountValue obj or create a new one
-      if dialog.knownAccountValueObj():
+      if (dialog.knownAccountValueObj()):
         print("date found")
         av = dialog.knownAccountValueObj()
       else:
@@ -271,14 +271,14 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def editMode(self):
-    if self.actionEdit_Mode.isChecked():
+    if (self.actionEdit_Mode.isChecked()):
       self.actionDelete_Account.setEnabled(True)
       self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
       self.purchases_table.cellDoubleClicked.connect(self.purchasesTableEdit)
       self.enableEditAllTables()
       if self.active_account != None:
         self.actionEdit_Account.setEnabled(True)
-      if self.warnings_enabled:
+      if (self.warnings_enabled):
         msg_box = QMessageBox()
         msg_box.setText("You have enabled potentially dangerous edits that cannot be undone.\n"\
                         "Proceed with care")
@@ -308,9 +308,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
     self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), True)
     dialog = AddFundDialog(self, True, fund)
-    if dialog.exec() == QtWidgets.QDialog.Accepted:
-      if dialog.delete():
-        if self.warnings_enabled:
+    if (dialog.exec() == QtWidgets.QDialog.Accepted):
+      if (dialog.delete()):
+        if (self.warnings_enabled):
           msg_box = QMessageBox()
           msg_box.setText("Deleting a fund cannot be undone. You should only delete a fund if it was " \
                           "created in error. If you're just trying to hide the fund because it has " \
@@ -318,14 +318,14 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
                               "Click Yes to continue with delete, otherwise click Cancel")
           msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
           msg_box.setWindowTitle("UnitTracker Warning")
-          if msg_box.exec() == QMessageBox.Yes:
+          if (msg_box.exec() == QMessageBox.Yes):
             self.active_account.deleteFund(fund, self.con)
         else:
             self.active_account.deleteFund(fund, self.con)
       else:
         fund.copy(dialog.fund)
         fund.updateToDB(self.con)
-        if dialog.initialUnitsChanged():
+        if (dialog.initialUnitsChanged()):
           self.active_account.fundChanged(self.con)
       self.populateFundsTable()
       self.populatePurchasesTable()
@@ -353,7 +353,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.clearContents()
     self.funds_table.setRowCount(len(self.active_account.funds))
     for f in self.active_account.funds:
-      if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0):
+      if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
         self.funds_table.setItem(row, 0, FundTableItem(f))
         self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
         end_units =self.active_account.end_units[f.id]
@@ -366,7 +366,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.purchases_table.clearContents()
     self.purchases_table.setRowCount(len(self.active_account.purchases))
     for p in self.active_account.purchases:
-      if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[p.fund_id] == 0):
+      if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[p.fund_id] == 0)):
         self.purchases_table.setItem(row, 0,
                                      QtWidgets.QTableWidgetItem(
                                        self.active_account.account_values_by_id[p.date_id].date))
@@ -418,8 +418,10 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
 
 
+
 #%%
-app = QtWidgets.QApplication(sys.argv)
-myapp = UnitTracker()
-myapp.show()
-app.exec()
+if (__name__ == '__main__'):
+  app = QtWidgets.QApplication(sys.argv)
+  myapp = UnitTracker()
+  myapp.show()
+  sys.exit(app.exec())

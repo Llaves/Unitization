@@ -7,7 +7,7 @@ Purchase Fund dialog
   if account value is way out of line with last account value, give warning
 
 
-Hide FUnds with zero units
-
 
 Implement Close Account and add this to Delete Account msg?
+
+LGPL example - https://www.state-machine.com/qm/qt_lgpl.html
