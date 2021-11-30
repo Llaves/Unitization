@@ -324,6 +324,14 @@ class UnitPurchase():
   def updateToDB(self, con):
     sql_string = 'UPDATE UnitPurchase SET fund_id = %d, amount = %f, date_id = %d WHERE id = %d' % \
       (self.fund_id, self.amount, self.date_id, self.id)
+    con.execute(sql_string)
+    con.commit()
+
+  def deleteFromDB(self, con):
+    sql_string = ('DELETE FROM UnitPurchase WHERE id = %d' % self.id)
+    con.execute(sql_string)
+    con.commit()
+
 
   ##class ends
 

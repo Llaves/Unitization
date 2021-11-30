@@ -13,9 +13,9 @@ class Ui_unitPurchaseDialog(object):
         unitPurchaseDialog.setObjectName("unitPurchaseDialog")
         unitPurchaseDialog.resize(704, 408)
         self.buttonBox = QtWidgets.QDialogButtonBox(unitPurchaseDialog)
-        self.buttonBox.setGeometry(QtCore.QRect(0, 320, 621, 32))
+        self.buttonBox.setGeometry(QtCore.QRect(-110, 360, 621, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Save)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayoutWidget = QtWidgets.QWidget(unitPurchaseDialog)
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(50, 40, 581, 251))
@@ -78,6 +78,10 @@ class Ui_unitPurchaseDialog(object):
         self.account_value.setObjectName("account_value")
         self.horizontalLayout.addWidget(self.account_value)
         self.verticalLayout.addLayout(self.horizontalLayout)
+        self.delete_purchase = QtWidgets.QCheckBox(unitPurchaseDialog)
+        self.delete_purchase.setEnabled(True)
+        self.delete_purchase.setGeometry(QtCore.QRect(240, 310, 201, 29))
+        self.delete_purchase.setObjectName("delete_purchase")
 
         self.retranslateUi(unitPurchaseDialog)
         self.buttonBox.accepted.connect(unitPurchaseDialog.accept)
@@ -91,4 +95,5 @@ class Ui_unitPurchaseDialog(object):
         self.label_3.setText(_translate("unitPurchaseDialog", "Dollars invested"))
         self.label_2.setText(_translate("unitPurchaseDialog", "Purchase Date"))
         self.label_4.setText(_translate("unitPurchaseDialog", "Account Value on Purchase Date "))
+        self.delete_purchase.setText(_translate("unitPurchaseDialog", "Delete Purchase"))
 

@@ -27,6 +27,11 @@ class AccountValuesTableItem(QtWidgets.QTableWidgetItem):
     QtWidgets.QTableWidgetItem.__init__(self, account_value.date)
     self.account_value = account_value
 
+class PurchasesTableItem(QtWidgets.QTableWidgetItem):
+  def __init__(self, date, purchase):
+    QtWidgets.QTableWidgetItem.__init__(self, date)
+    self.purchase = purchase
+
 class FloatTableItem(QtWidgets.QTableWidgetItem):
   def __init__(self, format_string, num):
     self.num = num
@@ -331,11 +336,56 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.populatePurchasesTable()
 
 
-      #if delete
-
-
   def purchasesTableEdit(self, row, col):
-      print ("PurchasesTableEdit row = %d col = %d" % (row,col))
+    purchase = self.purchases_table.item(row, 0).purchase
+    print ("PurchasesTableEdit row = %d col = %d" % (row,col))
+    self.purchases_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 3), True)
+    dialog = UnitPurchaseDialog(self, True, purchase)
+    if (dialog.exec() == QtWidgets.QDialog.Accepted):
+      if (dialog.delete()):
+        if (self.warnings_enabled):
+          msg_box = QMessageBox()
+          msg_box.setText("Deleting a purchase cannot be undone. You should only delete a purchase if it was " \
+                          "created in error. If you're just trying to hide a purchase because the fund because it has " \
+                            "been zeroed out, use Hide Empty on the Funds menu" \
+                              "Click Yes to continue with delete, otherwise click Cancel")
+          msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+          msg_box.setWindowTitle("UnitTracker Warning")
+          if (msg_box.exec() == QMessageBox.Yes):
+            purchase.deleteFromDB(self.con)
+        else:
+          purchase.deleteFromDB(self.con)
+      else:
+        print ("update purchase")
+        # get existing AccountValue obj or create a new one
+        if (dialog.knownAccountValueObj()):
+          print("date found")
+          av = dialog.knownAccountValueObj()
+        else:
+          print("date not found")
+          # create a new AccountValue object
+          av = AccountValue(0, dialog.date(), dialog.accountValueDollars(), self.active_account.id)
+          av.insertIntoDB(self.con)
+          # update the account_values list in active account and update display
+          self.active_account.addValue(av)
+          self.populateAccountValuesTable()
+        # update the unit purchase object
+        print ("update purchase object")
+        purchase.date_id = av.id
+        purchase.amount = dialog.dollarsPurchased()
+        print (purchase)
+        purchase.updateToDB(self.con)
+      self.active_account.processPurchases(self.con)
+      self.populatePurchasesTable()
+      self.populateFundsTable()
+
+
+
+
+
+      self.active_account.processPurchases(self.con)
+      self.populateFundsTable()
+      self.populatePurchasesTable()
 
 
 
@@ -368,8 +418,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     for p in self.active_account.purchases:
       if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[p.fund_id] == 0)):
         self.purchases_table.setItem(row, 0,
-                                     QtWidgets.QTableWidgetItem(
-                                       self.active_account.account_values_by_id[p.date_id].date))
+                                     PurchasesTableItem(self.active_account.account_values_by_id[p.date_id].date, p))
         self.purchases_table.setItem(row, 1,
                                      QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
         self.purchases_table.setItem(row, 2, FloatTableItem("$%.2f", p.amount))

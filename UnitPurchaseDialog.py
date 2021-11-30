@@ -9,23 +9,41 @@ from unit_purchase_dialog import *
 from datetime import date
 
 class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
-  def __init__(self, parent):
+  def __init__(self, parent, edit_mode = False, unit_purchase = None):
     QtWidgets.QDialog.__init__(self, parent)
 
     self.parent = parent
     self.known_account_value = None
+    self.edit_mode = edit_mode
+    self.old_purchase = unit_purchase
 
     self.setupUi(self)
-    # populate the comboBox
-    combo = self.fund_selector
-    for f in self.parent.active_account.funds:
-      combo.insertItem(9999, f.name, f)
 
-    # initialize the date to today's date
-    today = date.today()
-    q_today = QtCore.QDate()
-    q_today.setDate(today.year, today.month, today.day)
-    self.purchase_date.setDate(q_today)
+    if self.edit_mode:
+      self.setWindowTitle("Edit Purchase")
+      self.delete_purchase.show()
+      fund = [f for f in self.parent.active_account.funds if f.id == self.old_purchase.fund_id][0]
+      self.fund_selector.insertItem(9999, fund.name, fund)
+      self.fund_selector.setEnabled(False)
+      self.purchase_dollars.setText(str(self.old_purchase.amount))
+      d = self.parent.active_account.account_values_by_id[self.old_purchase.date_id].date
+      old_date = QtCore.QDate()
+      old_date.setDate(int(d[0:4]), int(d[5:7]), int(d[8:10]))
+      self.purchase_date.setDate(old_date)
+    else:
+      self.delete_purchase.hide()
+      self.purchase_dollars.setText("0")
+      # populate the comboBox
+      combo = self.fund_selector
+      for f in self.parent.active_account.funds:
+        combo.insertItem(9999, f.name, f)
+      # initialize the date to today's date
+      today = date.today()
+      q_today = QtCore.QDate()
+      q_today.setDate(today.year, today.month, today.day)
+      self.purchase_date.setDate(q_today)
+
+
     # enable calendar popup
     self.purchase_date.setCalendarPopup(True)
     # connect date edit finished signal
@@ -39,7 +57,6 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
     v = QtGui.QDoubleValidator()
     v.setBottom(0)
     v.setDecimals(2)
-    self.purchase_dollars.setText("0")
     self.purchase_dollars.setValidator(v)
     # use this validator for account value as well
     self.account_value.setValidator(v)
@@ -59,6 +76,9 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
 
   def knownAccountValueObj(self):
     return self.known_account_value
+
+  def delete(self):
+    return self.delete_purchase.isChecked()
 
   def checkDate(self):
     if not self.calendar.hasFocus():

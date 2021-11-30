@@ -3,6 +3,8 @@
 *.bak
 *.db
 *.xlsx
+ToDo.txt
+
 
 
 .pylint.d/*
