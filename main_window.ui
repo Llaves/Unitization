@@ -265,6 +265,7 @@
     </property>
     <addaction name="actionEdit_Mode"/>
     <addaction name="actionNo_Warnings"/>
+    <addaction name="actionAdd_Account_Value"/>
    </widget>
    <addaction name="menuAccounts"/>
    <addaction name="menuFunds"/>
@@ -273,6 +274,9 @@
   <action name="actionOpen_Account">
    <property name="text">
     <string>Open Account</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+A</string>
    </property>
   </action>
   <action name="actionNew_Account">
@@ -306,6 +310,9 @@
    <property name="text">
     <string>Edit Mode</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+E</string>
+   </property>
   </action>
   <action name="actionNo_Warnings">
    <property name="checkable">
@@ -313,6 +320,9 @@
    </property>
    <property name="text">
     <string>No Warnings</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+W</string>
    </property>
   </action>
   <action name="actionDelete_Account">
@@ -345,6 +355,14 @@
    </property>
    <property name="text">
     <string>Hide Empty</string>
+   </property>
+  </action>
+  <action name="actionAdd_Account_Value">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Add Account Value</string>
    </property>
   </action>
  </widget>

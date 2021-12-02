@@ -11,6 +11,7 @@ from AddAccountDialog import AddAccountDialog
 from SelectAccountDialog import SelectAccountDialog
 from AddFundDialog import AddFundDialog
 from UnitPurchaseDialog import UnitPurchaseDialog
+from AccountValueDialog import AccountValueDialog
 from DeleteFundDialog import DeleteFundDialog
 from database import connectDB, fetchAccounts
 from db_objects import Fund, AccountValue, UnitPurchase
@@ -90,6 +91,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.actionHide_Empty.toggled.connect(self.hideEmptyFunds)
     self.actionEdit_Mode.triggered.connect(self.editMode)
     self.actionNo_Warnings.triggered.connect(self.noWarnings)
+    self.actionAdd_Account_Value.triggered.connect(self.addAccountValue)
 
 
     # advanced mode options
@@ -206,6 +208,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.tabWidget.setVisible(True)
       # enable menu items now that we have an account
       self.menuFunds.setEnabled(True)
+      self.actionAdd_Account_Value.setEnabled(True)
       #enable the edit account menu item only if advanced edit is enabled
       if (self.actionEdit_Mode.isChecked()):
         self.actionEdit_Account.setEnabled(True)
@@ -298,6 +301,12 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.actionDelete_Account.setEnabled(False)
       self.actionEdit_Fund.setEnabled(False)
       self.actionDelete_Fund.setEnabled(False)
+
+  def addAccountValue(self):
+    dialog = AccountValueDialog(self)
+    if (dialog.exec() == QtWidgets.QDialog.Accepted):
+      pass
+
 
 
 ###############################
