@@ -148,7 +148,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 ###############################
 
   def newAccount(self):
-    print("new Account clicked")
     dialog = AddAccountDialog(self)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       dialog.account.insertIntoDB(self.con)
@@ -169,8 +168,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     if (self.dangerousEditWarning()):
       dialog = AddAccountDialog(self, True, self.active_account)
       if (dialog.exec() == QtWidgets.QDialog.Accepted):
-        print ("Edit account")
-        print (dialog.account)
         self.active_account.copy(dialog.account)
         self.active_account.updateToDB(self.con)
         self.fillAccountSummaryBox()
@@ -239,19 +236,12 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def purchaseFund(self):
-    print("purchase fund clicked")
     dialog = UnitPurchaseDialog(self)
     if (dialog.exec() == QtWidgets.QDialog().Accepted):
-      print ("Units purchased")
-      print (dialog.date())
-      print (dialog.fund())
-      print (dialog.dollarsPurchased())
       # get existing AccountValue obj or create a new one
       if (dialog.knownAccountValueObj()):
-        print("date found")
-        av = dialog.knownAccountValueObj()
+       av = dialog.knownAccountValueObj()
       else:
-        print("date not found")
         # create a new AccountValue object
         av = AccountValue(0, dialog.date(), dialog.accountValueDollars(), self.active_account.id)
         av.insertIntoDB(self.con)
@@ -283,6 +273,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.actionDelete_Account.setEnabled(True)
       self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
       self.purchases_table.cellDoubleClicked.connect(self.purchasesTableEdit)
+      self.account_values_table.cellDoubleClicked.connect(self.accountValuesTableEdit)
       self.enableEditAllTables()
       if self.active_account != None:
         self.actionEdit_Account.setEnabled(True)
@@ -305,7 +296,13 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def addAccountValue(self):
     dialog = AccountValueDialog(self)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
-      pass
+      # create a new AccountValue object
+      av = AccountValue(0, dialog.date(), dialog.accountValueDollars(), self.active_account.id)
+      av.insertIntoDB(self.con)
+      # update the account_values list in active account and update display
+      self.active_account.addValue(av)
+      self.populateAccountValuesTable()
+
 
 
 
@@ -343,11 +340,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
           self.active_account.fundChanged(self.con)
       self.populateFundsTable()
       self.populatePurchasesTable()
+    self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), False)
 
 
   def purchasesTableEdit(self, row, col):
     purchase = self.purchases_table.item(row, 0).purchase
-    print ("PurchasesTableEdit row = %d col = %d" % (row,col))
     self.purchases_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 3), True)
     dialog = UnitPurchaseDialog(self, True, purchase)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
@@ -365,37 +362,36 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
           purchase.deleteFromDB(self.con)
       else:
-        print ("update purchase")
         # get existing AccountValue obj or create a new one
         if (dialog.knownAccountValueObj()):
-          print("date found")
           av = dialog.knownAccountValueObj()
         else:
-          print("date not found")
-          # create a new AccountValue object
+         # create a new AccountValue object
           av = AccountValue(0, dialog.date(), dialog.accountValueDollars(), self.active_account.id)
           av.insertIntoDB(self.con)
           # update the account_values list in active account and update display
           self.active_account.addValue(av)
           self.populateAccountValuesTable()
         # update the unit purchase object
-        print ("update purchase object")
         purchase.date_id = av.id
         purchase.amount = dialog.dollarsPurchased()
-        print (purchase)
         purchase.updateToDB(self.con)
       self.active_account.processPurchases(self.con)
       self.populatePurchasesTable()
       self.populateFundsTable()
+    self.purchases_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 3), False)
 
-
-
-
-
+  def accountValuesTableEdit(self, row, col):
+    av = self.account_values_table.item(row, 0).account_value
+    self.account_values_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 1), True)
+    dialog = AccountValueDialog(self, True, av)
+    if (dialog.exec() == QtWidgets.QDialog.Accepted):
+      av.value = dialog.accountValueDollars()
+      av.updateToDB(self.con)
       self.active_account.processPurchases(self.con)
       self.populateFundsTable()
       self.populatePurchasesTable()
-
+    self.account_values_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 1), False)
 
 
 

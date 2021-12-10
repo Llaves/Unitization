@@ -171,4 +171,5 @@ class Ui_MainWindow(object):
         self.actionExport_to_Excel.setText(_translate("MainWindow", "Export to Excel"))
         self.actionHide_Empty.setText(_translate("MainWindow", "Hide Empty"))
         self.actionAdd_Account_Value.setText(_translate("MainWindow", "Add Account Value"))
+        self.actionAdd_Account_Value.setShortcut(_translate("MainWindow", "Alt+V"))
 

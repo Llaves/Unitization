@@ -99,7 +99,6 @@ class Account():
   def updateToDB(self, con):
     sql_string = 'UPDATE Accounts SET name = "%s", brokerage = "%s", account_no = "%s" ' \
       'WHERE id = %d'  % (self.name, self.brokerage, self.account_no, self.id)
-    print(sql_string)
     con.execute(sql_string)
     con.commit()
 
@@ -144,7 +143,6 @@ class Account():
           last_units[p.fund_id] += p.units_purchased
           self.purchases += [p]
         v.units_out = copy(last_units)
-        print(v.units_out)
     self.end_units = copy(last_units)
 
   def exportXLSX(self, file_name):
@@ -268,7 +266,6 @@ class AccountValue():
   def updateToDB(self, con):
     sql_string = 'UPDATE AccountValue SET date = "%s", value = %f, account_id = %d WHERE id = %d' \
       % (self.date, self.value, self.account_id, self.id)
-    print(sql_string)
     con.execute(sql_string)
     con.commit()
 

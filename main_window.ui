@@ -364,6 +364,9 @@
    <property name="text">
     <string>Add Account Value</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+V</string>
+   </property>
   </action>
  </widget>
  <resources/>

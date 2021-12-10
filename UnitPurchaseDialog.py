@@ -7,6 +7,7 @@ Created on Sat Nov 20 13:49:54 2021
 
 from unit_purchase_dialog import *
 from datetime import date
+from copy import copy
 
 class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
   def __init__(self, parent, edit_mode = False, unit_purchase = None):
@@ -15,7 +16,7 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
     self.parent = parent
     self.known_account_value = None
     self.edit_mode = edit_mode
-    self.old_purchase = unit_purchase
+    self.old_purchase = copy(unit_purchase)
 
     self.setupUi(self)
 
@@ -25,7 +26,7 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
       fund = [f for f in self.parent.active_account.funds if f.id == self.old_purchase.fund_id][0]
       self.fund_selector.insertItem(9999, fund.name, fund)
       self.fund_selector.setEnabled(False)
-      self.purchase_dollars.setText(str(self.old_purchase.amount))
+      self.purchase_dollars.setText("%.2f" % (self.old_purchase.amount))
       d = self.parent.active_account.account_values_by_id[self.old_purchase.date_id].date
       old_date = QtCore.QDate()
       old_date.setDate(int(d[0:4]), int(d[5:7]), int(d[8:10]))

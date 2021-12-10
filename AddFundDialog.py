@@ -23,6 +23,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
       v.setBottom(0)
       v.setDecimals(3)
       self.initial_units.setText("0")
+      v.setNotation(QtGui.QDoubleValidator.StandardNotation)
       self.initial_units.setValidator(v)
       self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
       self.fund_name.textChanged.connect(self.onTextChanged)
