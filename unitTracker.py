@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Tue Nov 16 13:15:55 2021
 
-@author: David
-"""
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
 
 import sys
 from main_window import *
@@ -12,7 +12,6 @@ from SelectAccountDialog import SelectAccountDialog
 from AddFundDialog import AddFundDialog
 from UnitPurchaseDialog import UnitPurchaseDialog
 from AccountValueDialog import AccountValueDialog
-from DeleteFundDialog import DeleteFundDialog
 from database import connectDB, fetchAccounts
 from db_objects import Fund, AccountValue, UnitPurchase
 from PyQt5.QtWidgets import QMessageBox

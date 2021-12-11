@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Nov 20 13:49:54 2021
 
-@author: David
-"""
+
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
 
 from unit_purchase_dialog import *
 from datetime import date

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Nov 18 17:22:38 2021
 
-@author: David
-"""
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
+
 
 from select_account import *
 
@@ -19,4 +20,3 @@ class SelectAccountDialog(QtWidgets.QDialog, Ui_selectAccountDialog):
 
   def selectedAccount(self):
     return self.select_account.currentData()
-

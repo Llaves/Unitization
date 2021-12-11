@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Sat Nov  6 10:16:23 2021
 
-@author: David
-"""
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
+
 
 from db_objects import Account, Fund, AccountValue, UnitPurchase
 from database import createDB, connectDB, fetchAccounts

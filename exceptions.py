@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Nov  5 16:53:18 2021
 
-@author: David
-"""
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
+
+
 
 class UnitizeException(Exception):
   pass

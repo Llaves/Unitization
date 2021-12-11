@@ -1,3 +1,9 @@
+
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
+
 import sqlite3 as sql
 from os.path import exists
 from db_objects import makeAccount, makeFund, makeUnitPurchase, makeAccountValue
@@ -75,8 +81,3 @@ def fetchAccounts(con):
   for row in cursor.execute("SELECT id, name, brokerage, account_no from Accounts "):
     accounts += [makeAccount(row)]
   return accounts
-
-
-
-
-

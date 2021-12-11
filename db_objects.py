@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Fri Nov  5 17:41:16 2021
 
-@author: David
-"""
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
 
 from exceptions import *
 from copy import copy

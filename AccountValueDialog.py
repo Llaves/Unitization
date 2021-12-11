@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+
+#
+# © 2021 David Strip - david@stripfamily.net
+#
+
 """
 Created on Tue Nov 30 15:33:16 2021
 
