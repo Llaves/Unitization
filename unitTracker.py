@@ -337,6 +337,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         fund.updateToDB(self.con)
         if (dialog.initialUnitsChanged()):
           self.active_account.fundChanged(self.con)
+        self.active_account.fund_names[fund.id] = fund.name
       self.populateFundsTable()
       self.populatePurchasesTable()
     self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), False)
