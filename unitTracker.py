@@ -42,6 +42,8 @@ class FloatTableItem(QtWidgets.QTableWidgetItem):
 
 
 #%%
+
+
 class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def __init__(self, parent=None):
     QtWidgets.QMainWindow.__init__(self, parent)
@@ -314,8 +316,10 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def fundTableEdit(self, row, col):
+    if (row == self.funds_table.rowCount() - 1):
+      self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), False)
+      return
     fund = self.funds_table.item(row, 0).fund
-
     self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), True)
     dialog = AddFundDialog(self, True, fund)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
@@ -406,7 +410,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def populateFundsTable(self):
     row = 0
     self.funds_table.clearContents()
-    self.funds_table.setRowCount(len(self.active_account.funds))
+    self.funds_table.setRowCount(len(self.active_account.funds) + 1)
     for f in self.active_account.funds:
       if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
         self.funds_table.setItem(row, 0, FundTableItem(f))
@@ -414,7 +418,12 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         end_units =self.active_account.end_units[f.id]
         self.funds_table.setItem(row, 2, FloatTableItem("%.3f", end_units))
         row += 1
-    self.funds_table.setRowCount(row)
+    #add the totals row
+    self.funds_table.setSpan(row, 0, 1, 2)
+    total_label = QtWidgets.QTableWidgetItem("Total Units")
+    total_label.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+    self.funds_table.setItem(row, 0, total_label)
+    self.funds_table.setItem(row, 2, FloatTableItem("%.3f", self.active_account.total_units))
 
   def populatePurchasesTable(self):
     row = 0
