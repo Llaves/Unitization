@@ -144,6 +144,7 @@ class Account():
           self.purchases += [p]
         v.units_out = copy(last_units)
     self.end_units = copy(last_units)
+    self.total_units = sum(self.end_units.values())
 
   def exportXLSX(self, file_name):
     file_name = "%s.xlsx" % self.name
