@@ -152,7 +152,6 @@ class Account():
     self.total_units = sum(self.end_units.values())
 
   def exportXLSX(self, file_name):
-    file_name = "%s.xlsx" % self.name
     wbk = Workbook()
     funds_sheet = wbk.active
     funds_sheet.title = "Funds"
