@@ -31,6 +31,9 @@ class Account():
     #list of account values sorted by date
     self.account_values = []
 
+    # flag that the account has already been initialized
+    self.initialized = False
+
   def __str__(self):
     return("Name = %s, Brokerage = %s, Account Number = %s" % (self.name, self.brokerage, self.account_no))
 
@@ -117,10 +120,12 @@ class Account():
     self.account_values.sort(key = lambda av: av.date)
 
   def initialize(self, con):
-    self.fetchFunds(con)
-    self.fetchValues(con)
-    self.initialUnitValues()
-    self.processPurchases(con)
+    if (not self.initialized):
+      self.fetchFunds(con)
+      self.fetchValues(con)
+      self.initialUnitValues()
+      self.processPurchases(con)
+      self.initialized = True
 
   def initialUnitValues(self):
     for f in self.funds:
