@@ -412,6 +412,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.clearContents()
     self.funds_table.setRowCount(len(self.active_account.funds) + 1)
     for f in self.active_account.funds:
+      self.funds_table.setSpan(row, 0, 1, 1) #span may have been changed for totals row of another account
       if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
         self.funds_table.setItem(row, 0, FundTableItem(f))
         self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
@@ -421,7 +422,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     #add the totals row
     self.funds_table.setSpan(row, 0, 1, 2)
     total_label = QtWidgets.QTableWidgetItem("Total Units")
-    total_label.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+    total_label.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
     self.funds_table.setItem(row, 0, total_label)
     self.funds_table.setItem(row, 2, FloatTableItem("%.3f", self.active_account.total_units))
 
