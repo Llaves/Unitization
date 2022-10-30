@@ -85,17 +85,15 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
   def checkDate(self):
     if not self.calendar.hasFocus():
     #this is a real change for the date
-      print ("checkDate called")
       date = self.date()
+      #check if there is an entry for this date
       if (date in self.parent.active_account.account_values_by_date):
         print ("date found")
         self.account_value.setEnabled(False)
         self.known_account_value = self.parent.active_account.account_values_by_date[date]
         self.account_value.setText('{0:.2f}'.format(self.known_account_value.value))
       else:
-        #check if account_value came from a previously known date, then blank out the edit box
-        if self.known_account_value:
-          self.account_value.setEnabled(True)
-          self.account_value.setText('')
-          # clear known_account_value
-          self.known_account_value = None
+        self.account_value.setEnabled(True)
+        self.account_value.setText('')
+        # clear known_account_value
+        self.known_account_value = None
