@@ -3,6 +3,8 @@
 *.bak
 *.db
 *.xlsx
+*.doc*
+
 ToDo.txt
 
 
