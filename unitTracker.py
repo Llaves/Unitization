@@ -74,6 +74,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     #  database variables
     self.db_filename = "test.db"
     self.con = connectDB(self.db_filename)  # connection to sqlite
+    if (not self.con):
+      print ("Database not found")
 
     self.accounts = fetchAccounts(self.con)
     self.active_account = None
@@ -412,7 +414,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.clearContents()
     self.funds_table.setRowCount(len(self.active_account.funds) + 1)
     for f in self.active_account.funds:
-      self.funds_table.setSpan(row, 0, 1, 1) #span may have been changed for totals row of another account
+      if (self.funds_table.columnSpan(row, 0) !=1):
+        self.funds_table.setSpan(row, 0, 1, 1) #span may have been changed for totals row of another account
       if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
         self.funds_table.setItem(row, 0, FundTableItem(f))
         self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
