@@ -1,7 +1,6 @@
 #ignore these files
 
 *.bak
-*.db
 *.xlsx
 *.doc*
 *.tmp
