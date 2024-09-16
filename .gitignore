@@ -4,6 +4,9 @@
 *.xlsx
 *.doc*
 *.tmp
+*.pdf
+*.db
+
 
 
 ToDo.txt
@@ -16,5 +19,6 @@ __pycache__/*
 
 dist/*
 build/*
+Python/*
 
 .spyproject/config/workspace.ini
