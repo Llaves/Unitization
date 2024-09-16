@@ -23,6 +23,11 @@
       <height>1191</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="currentIndex">
      <number>0</number>
     </property>
@@ -180,6 +185,13 @@
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Account Description</string>
         </property>
@@ -190,6 +202,13 @@
       </item>
       <item>
        <widget class="QLabel" name="account_name">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -200,6 +219,13 @@
       </item>
       <item>
        <widget class="QLabel" name="brokerage">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="frameShape">
          <enum>QFrame::NoFrame</enum>
         </property>
@@ -219,6 +245,13 @@
       </item>
       <item>
        <widget class="QLabel" name="account_number">
+        <property name="font">
+         <font>
+          <pointsize>10</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="text">
          <string/>
         </property>
@@ -238,7 +271,7 @@
      <x>0</x>
      <y>0</y>
      <width>1893</width>
-     <height>38</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuAccounts">
