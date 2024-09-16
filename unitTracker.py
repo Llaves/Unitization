@@ -45,7 +45,7 @@ class FloatTableItem(QtWidgets.QTableWidgetItem):
 
 
 class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
-  def __init__(self, parent=None):
+  def __init__(self, accounts_file, parent=None):
     QtWidgets.QMainWindow.__init__(self, parent)
     self.setupUi(self)
 
@@ -72,7 +72,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
     #  database variables
-    self.db_filename = "test.db"
+    self.db_filename = accounts_file
     self.con = connectDB(self.db_filename)  # connection to sqlite
     if (not self.con):
       print ("Database not found")
@@ -397,6 +397,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.active_account.processPurchases(self.con)
       self.populateFundsTable()
       self.populatePurchasesTable()
+      self.populateAccountValuesTable()
     self.account_values_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 1), False)
 
 
@@ -489,6 +490,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 #%%
 if (__name__ == '__main__'):
   app = QtWidgets.QApplication(sys.argv)
-  myapp = UnitTracker()
+  myapp = UnitTracker(sys.argv[1])
   myapp.show()
   sys.exit(app.exec())
