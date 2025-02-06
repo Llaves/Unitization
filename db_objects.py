@@ -17,9 +17,7 @@ class Account():
     self.brokerage = brokerage
     self.account_no = account_no
 
-    #sorted list of account_values
-    self.account_values = []
-
+   
     #dictionary to map fund ids to fund names
     self.fund_names = {}
     #dictionary to map AccountValue ids (account valuation on specific date) to AccountValue objects
@@ -28,6 +26,8 @@ class Account():
     self.account_values_by_date = {}
     #dictionary to map fund.id to initial units
     self.initial_fund_units = {}
+    #dictionary to map fund.id to ending units
+    self.end_units = {} # This is initialized in processPurchases
     #list of account values sorted by date
     self.account_values = []
 
