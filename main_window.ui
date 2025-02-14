@@ -45,7 +45,7 @@
        </rect>
       </property>
       <property name="sortingEnabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="rowCount">
        <number>10</number>
@@ -53,6 +53,12 @@
       <property name="columnCount">
        <number>3</number>
       </property>
+      <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+       <bool>false</bool>
+      </attribute>
+      <attribute name="horizontalHeaderStretchLastSection">
+       <bool>false</bool>
+      </attribute>
       <attribute name="verticalHeaderVisible">
        <bool>false</bool>
       </attribute>

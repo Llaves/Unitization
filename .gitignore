@@ -20,5 +20,6 @@ __pycache__/*
 dist/*
 build/*
 Python/*
+web_version/*
 
 .spyproject/*

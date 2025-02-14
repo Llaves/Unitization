@@ -61,6 +61,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.tabWidget.setVisible(False)
     # disable edit for tables
     self.disableEditAllTables()
+    self.funds_table.setColumnWidth(0, 300)
+    self.purchases_table.setColumnWidth(1, 300)
     self.funds_table.setMaximumWidth(self.tableTotalWidth(self.funds_table) + 2)
     self.purchases_table.setMaximumWidth(self.tableTotalWidth(self.purchases_table) + 2)
     self.account_values_table.setMaximumWidth(self.tableTotalWidth(self.account_values_table) + 2)
@@ -448,8 +450,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def populateAccountValuesTable(self):
     row = 0
     self.account_values_table.clearContents()
-    self.account_values_table.setRowCount(len(self.active_account.account_values))
-    for av in self.active_account.account_values:
+    self.account_values_table.setRowCount(len(self.active_account.account_values_sorted_by_date))
+    for av in self.active_account.account_values_sorted_by_date:
       self.account_values_table.setItem(row, 0, AccountValuesTableItem(av))
       self.account_values_table.setItem(row, 1, FloatTableItem("$%.2f", av.value))
       row += 1

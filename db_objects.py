@@ -22,14 +22,12 @@ class Account():
     self.fund_names = {}
     #dictionary to map AccountValue ids (account valuation on specific date) to AccountValue objects
     self.account_values_by_id = {}
-    #dictionary to map date strings to account_value objects
-    self.account_values_by_date = {}
     #dictionary to map fund.id to initial units
     self.initial_fund_units = {}
     #dictionary to map fund.id to ending units
     self.end_units = {} # This is initialized in processPurchases
-    #list of account values sorted by date
-    self.account_values = []
+    #account values list
+    self.account_values_sorted_by_date = []
 
     # flag that the account has already been initialized
     self.initialized = False
@@ -111,13 +109,12 @@ class Account():
     for row in cursor.execute("Select id, date, value, account_id FROM AccountValue " \
                                 "WHERE account_id = %d ORDER BY date" % (self.id)):
       v = makeAccountValue(row)
-      self.account_values += [v]
-      self.account_values_by_date[v.date] = v
+      self.account_values_sorted_by_date += [v]
 
   def addValue(self, value):
-    self.account_values += [value]
+    self.account_values_sorted_by_date += [value]
     #the list is sorted, so sort to maintain order
-    self.account_values.sort(key = lambda av: av.date)
+    self.account_values_sorted_by_date.sort(key = lambda av: av.date)
 
   def initialize(self, con):
     if (not self.initialized):
@@ -134,15 +131,21 @@ class Account():
   def initialUnitValuesIsZero(self):
     return sum(self.initial_fund_units.values()) == 0
 
+  #We find all the purchases by looking at the fund evaluation dates and finding the purchases associated with that date
+  #By processing the fund evaluations in order, we can calculate the number of units of each fund that were purchased.
+  #While we could just store the number of units at the purchase date, this would make it very hard to calculate the
+  #number of units if we have to edit the purchase amount, the fund value, or add a missed purchase.
+
   def processPurchases(self, con):
+    """Process the purchases for the account, updating the account values and the fund units"""
     self.purchases = []
     last_units = copy(self.initial_fund_units)
     if not self.initialUnitValuesIsZero():
-      for v in self.account_values:
+      for v in self.account_values_sorted_by_date:
         self.account_values_by_id[v.id] = v
         total_units = sum(last_units.values())
         v.unit_price = v.value/total_units
-        purchases = v.fetchUnitPurchases(con, self.funds)
+        purchases = v.fetchUnitPurchases(con, self.funds) #get the purchases for this date
         for p in purchases:
           p.units_purchased = p.amount/v.unit_price
           last_units[p.fund_id] += p.units_purchased
@@ -175,7 +178,7 @@ class Account():
     account_values_sheet.append(["Date", "Account Value"])
     account_values_sheet.column_dimensions['A'].width = 15
     account_values_sheet.column_dimensions['B'].width = 15
-    for av in self.account_values:
+    for av in self.account_values_sorted_by_date:
       account_values_sheet.append([av.date, av.value])
     wbk.save(file_name)
 
