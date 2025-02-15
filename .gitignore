@@ -21,5 +21,7 @@ dist/*
 build/*
 Python/*
 web_version/*
+Documentation/*
+ExcelVersion/*
 
 .spyproject/*
