@@ -49,6 +49,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     QtWidgets.QMainWindow.__init__(self, parent)
     self.setupUi(self)
 
+    self.setStyleSheet("""
+            QWidget {
+                font-size: 24px;
+            }""")
+            
     # set up the funds, purchases tables
     self.funds_table.setHorizontalHeaderLabels(["Name", "Initial Units", "End Units"])
     self.purchases_table.setHorizontalHeaderLabels(["Date", "Fund Name", "Amount", "Units Purchased"])
@@ -101,6 +106,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
     # advanced mode options
     self.warnings_enabled = True
+
 
   # capture the close event so that we can properly close the database connection
   def closeEvent(self, event):
