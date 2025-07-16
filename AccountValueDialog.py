@@ -82,10 +82,10 @@ class AccountValueDialog(QtWidgets.QDialog, Ui_accountValueDialog):
     #this is a real change for the date
       print ("checkDate called")
       date = self.date()
-      if (date in self.parent.active_account.account_values_by_date):
+      if (date in self.parent.active_account.account_values_by_id):
         print ("date found")
         self.account_value.setEnabled(False)
-        self.known_account_value = self.parent.active_account.account_values_by_date[date]
+        self.known_account_value = self.parent.active_account.account_values_by_id[date]
         self.account_value.setText('{0:.2f}'.format(self.known_account_value.value))
         self.account_value.setToolTip("Value exists for this date. Use edit if you want to change it")
       else:

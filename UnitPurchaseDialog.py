@@ -87,10 +87,10 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
     #this is a real change for the date
       date = self.date()
       #check if there is an entry for this date
-      if (date in self.parent.active_account.account_values_by_date):
+      if (date in self.parent.active_account.account_values_by_id):
         print ("date found")
         self.account_value.setEnabled(False)
-        self.known_account_value = self.parent.active_account.account_values_by_date[date]
+        self.known_account_value = self.parent.active_account.account_values_by_id[date]
         self.account_value.setText('{0:.2f}'.format(self.known_account_value.value))
       else:
         self.account_value.setEnabled(True)
