@@ -6,6 +6,9 @@
 
 
 import sys
+import os
+import shutil
+from datetime import date
 from main_window import *
 from AddAccountDialog import AddAccountDialog
 from SelectAccountDialog import SelectAccountDialog
@@ -83,7 +86,19 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.con = connectDB(self.db_filename)  # connection to sqlite
     if (not self.con):
       print ("Database not found")
-
+    else:
+      #back up the database file
+      #check for backup directory
+      backup_dir = os.path.join(os.path.dirname(self.db_filename), "backup")
+      if (not os.path.exists(backup_dir)):
+        #create the backup directory
+        os.mkdir(backup_dir)
+      #copy the database file to the backup directory, appending the date
+      db_name = os.path.splitext(os.path.basename(self.db_filename))[0]
+      backup_file = os.path.join(backup_dir, db_name + "_" + date.today().strftime("%Y-%m-%d") + ".db")
+      shutil.copyfile(self.db_filename, backup_file)  
+    
+    # fetch the accounts from the database
     self.accounts = fetchAccounts(self.con)
     self.active_account = None
 
