@@ -8,7 +8,7 @@
 import sys
 import os
 import shutil
-from datetime import date
+import datetime as date
 from main_window import *
 from AddAccountDialog import AddAccountDialog
 from SelectAccountDialog import SelectAccountDialog
@@ -87,23 +87,14 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     if (not self.con):
       print ("Database not found")
     else:
-      #back up the database file
-      #check for backup directory
-      backup_dir = os.path.join(os.path.dirname(self.db_filename), "backup")
-      if (not os.path.exists(backup_dir)):
-        #create the backup directory
-        os.mkdir(backup_dir)
-      #copy the database file to the backup directory, appending the date
-      db_name = os.path.splitext(os.path.basename(self.db_filename))[0]
-      backup_file = os.path.join(backup_dir, db_name + "_" + date.today().strftime("%Y-%m-%d") + ".db")
-      shutil.copyfile(self.db_filename, backup_file)  
+      self.backupDB()
     
     # fetch the accounts from the database
     self.accounts = fetchAccounts(self.con)
     self.active_account = None
 
 
-    # GI Control
+    # UI Controls
 
     #  connect the menu items to methods
     self.actionNew_Account.triggered.connect(self.newAccount)
@@ -316,8 +307,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
       self.disableEditAllTables()
       self.actionEdit_Account.setEnabled(False)
       self.actionDelete_Account.setEnabled(False)
-      self.actionEdit_Fund.setEnabled(False)
-      self.actionDelete_Fund.setEnabled(False)
+      self.actionEdit_Mode.setEnabled(False)
 
   def addAccountValue(self):
     dialog = AccountValueDialog(self)
@@ -508,6 +498,22 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     table.setStyleSheet(
       "QHeaderView::section { Background-color:rgb(250,250,250); border-bottom-width:  10px; }" )
 
+###############################
+##
+##  utility methods
+##
+################################
+
+  def backupDB(self):
+    # check for backup directory
+    backup_dir = os.path.join(os.path.dirname(self.db_filename), "backup")
+    if (not os.path.exists(backup_dir)):
+      # create the backup directory
+      os.mkdir(backup_dir)
+    # copy the database file to the backup directory, appending the date
+    db_name = os.path.splitext(os.path.basename(self.db_filename))[0]
+    backup_file = os.path.join(backup_dir, db_name + "_" + date.datetime.today().strftime("%Y-%m-%d-%H-%M") + ".db")
+    shutil.copyfile(self.db_filename, backup_file)
 
 
 #%%
