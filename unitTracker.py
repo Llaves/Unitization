@@ -58,7 +58,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
             }""")
             
     # set up the funds, purchases tables
-    self.funds_table.setHorizontalHeaderLabels(["Name", "Initial Units", "End Units"])
+    self.funds_table.setHorizontalHeaderLabels(["Name", "Initial Units", "End Units", "% of Total"])
     self.purchases_table.setHorizontalHeaderLabels(["Date", "Fund Name", "Amount", "Units Purchased"])
     self.account_values_table.setHorizontalHeaderLabels(["Date", "Account Value"])
     # windows fix for missing rule beneath header
@@ -435,6 +435,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
         end_units =self.active_account.end_units[f.id]
         self.funds_table.setItem(row, 2, FloatTableItem("%.3f", end_units))
+        percentage = end_units / self.active_account.total_units if self.active_account.total_units > 0 else 0
+        self.funds_table.setItem(row, 3, FloatTableItem("%.4f%%", percentage * 100))
         row += 1
     #add the totals row
     self.funds_table.setSpan(row, 0, 1, 2)
