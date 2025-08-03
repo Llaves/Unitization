@@ -4,7 +4,7 @@
 # © 2021 David Strip - david@stripfamily.net
 #
 
-
+from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from exceptions import *
 from copy import copy
 from openpyxl import Workbook
@@ -154,16 +154,46 @@ class Account():
     self.end_units = copy(last_units)
     self.total_units = sum(self.end_units.values())
 
+
+
+  def save_workbook_with_retry(self, wbk, filename, parent=None):
+      while True:
+          try:
+              wbk.save(filename)
+              QMessageBox.information(parent, "Success", f"File saved successfully:\n{filename}")
+              break
+          except PermissionError:
+              retry = QMessageBox.warning(
+                  parent,
+                  "File is Open",
+                  f"The file:\n{filename}\nis open in Excel or another program.\n"
+                  "Please close it or choose a new filename.",
+                  QMessageBox.Retry | QMessageBox.Cancel
+              )
+              if retry == QMessageBox.Cancel:
+                  break
+              # Ask for a new filename
+              filename, _ = QFileDialog.getSaveFileName(parent, "Save As", filename, "Excel Files (*.xlsx)")
+              if not filename:
+                  break  # User cancelled save dialog
+          except Exception as e:
+              QMessageBox.critical(parent, "Error", f"An unexpected error occurred:\n{str(e)}")
+              break
+
   def exportXLSX(self, file_name):
     wbk = Workbook()
     funds_sheet = wbk.active
     funds_sheet.title = "Funds"
-    funds_sheet.append(["Name", "Initial Units", "Ending Units"])
+    funds_sheet.append(["Name", "Initial Units", "Ending Units", "% of Total"])
     funds_sheet.column_dimensions['A'].width = 25
     funds_sheet.column_dimensions['B'].width = 15
     funds_sheet.column_dimensions['C'].width = 15
+    funds_sheet.column_dimensions['D'].width = 15
     for f in self.funds:
-      funds_sheet.append([f.name, f.initial_units, self.end_units[f.id]])
+      funds_sheet.append([f.name, f.initial_units, self.end_units[f.id],
+                          (self.end_units[f.id] / self.total_units * 100)])
+    # Add a row for the total
+    funds_sheet.append(["", "Total", self.total_units, ""]) 
     purchases_sheet = wbk.create_sheet("Purchases")
     purchases_sheet.append(["Date", "Fund Name", "Amount", "Units Purchased"])
     purchases_sheet.column_dimensions['A'].width = 15
@@ -180,8 +210,10 @@ class Account():
     account_values_sheet.column_dimensions['B'].width = 15
     for av in self.account_values_sorted_by_date:
       account_values_sheet.append([av.date, av.value])
-    wbk.save(file_name)
+    # Save the workbook to the specified file
+    self.save_workbook_with_retry(wbk, file_name, parent=None)
 
+    
   ##class ends
 
 def makeAccount(tuple4):
