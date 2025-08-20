@@ -17,7 +17,6 @@ class Account():
     self.brokerage = brokerage
     self.account_no = account_no
 
-   
     #dictionary to map fund ids to fund names
     self.fund_names = {}
     #dictionary to map AccountValue ids (account valuation on specific date) to AccountValue objects
@@ -42,18 +41,15 @@ class Account():
     self.account_no = account.account_no
 
   def insertIntoDB(self, con):
-    sql_string = ("""INSERT into Accounts (name, brokerage, account_no)
-                  VALUES("%s", "%s", "%s")"""
-      % (self.name, self.brokerage, self.account_no))
-    cursor = con.execute(sql_string)
+    cursor = con.execute("INSERT INTO Accounts (name, brokerage, account_no) VALUES (?, ?, ?)",
+                         (self.name, self.brokerage, self.account_no))
     self.id = cursor.lastrowid
     con.commit()
 
   def fetchFunds(self, con):
     self.funds = []
     cursor = con.cursor()
-    for row in cursor.execute("SELECT id, name, initial_units, account_id from Funds WHERE account_id = %d"
-                              % self.id):
+    for row in cursor.execute("SELECT id, name, initial_units, account_id FROM Funds WHERE account_id = ?", (self.id,)):
       self.funds += [makeFund(row)]
       self.fund_names[row[0]] = row[1]
 
@@ -69,51 +65,40 @@ class Account():
 
   def deleteFund(self, fund, con):
     fund.deletePurchases(con)
-    sql_string = "DELETE FROM Funds WHERE id = %d" % fund.id
-    con.execute(sql_string)
+    con.execute("DELETE FROM Funds WHERE id = ?", (fund.id,))
     con.commit()
     del self.fund_names[fund.id]
     del self.initial_fund_units[fund.id]
     self.funds.remove(fund)
     self.processPurchases(con)
 
-  # the following delete functions are only for use in deleting an entire account. They do not clean up
-  # the auxilliary indices and such.
-
   def deleteAllFunds(self, con):
-    sql_string = "DELETE FROM Funds WHERE account_id = %d" % self.id
-    con.execute(sql_string)
+    con.execute("DELETE FROM Funds WHERE account_id = ?", (self.id,))
     con.commit()
 
   def deleteAllAccountValues(self, con):
-    sql_string = "DELETE FROM AccountValue WHERE account_id = %d" % self.id
-    con.execute(sql_string)
+    con.execute("DELETE FROM AccountValue WHERE account_id = ?", (self.id,))
     con.commit()
 
   def deleteAccount(self, con):
     self.deleteAllFunds(con)
     self.deleteAllAccountValues(con)
-    sql_string = "DELETE FROM Accounts WHERE id = %d" % self.id
-    con.execute(sql_string)
+    con.execute("DELETE FROM Accounts WHERE id = ?", (self.id,))
     con.commit()
 
   def updateToDB(self, con):
-    sql_string = 'UPDATE Accounts SET name = "%s", brokerage = "%s", account_no = "%s" ' \
-      'WHERE id = %d'  % (self.name, self.brokerage, self.account_no, self.id)
-    con.execute(sql_string)
+    con.execute("UPDATE Accounts SET name = ?, brokerage = ?, account_no = ? WHERE id = ?",
+                (self.name, self.brokerage, self.account_no, self.id))
     con.commit()
 
   def fetchValues(self, con):
-    """AccountValues for the given account, sorted by date"""
     cursor = con.cursor()
-    for row in cursor.execute("Select id, date, value, account_id FROM AccountValue " \
-                                "WHERE account_id = %d ORDER BY date" % (self.id)):
+    for row in cursor.execute("SELECT id, date, value, account_id FROM AccountValue WHERE account_id = ? ORDER BY date", (self.id,)):
       v = makeAccountValue(row)
       self.account_values_sorted_by_date += [v]
 
   def addValue(self, value):
     self.account_values_sorted_by_date += [value]
-    #the list is sorted, so sort to maintain order
     self.account_values_sorted_by_date.sort(key = lambda av: av.date)
 
   def initialize(self, con):
@@ -131,13 +116,7 @@ class Account():
   def initialUnitValuesIsZero(self):
     return sum(self.initial_fund_units.values()) == 0
 
-  #We find all the purchases by looking at the fund evaluation dates and finding the purchases associated with that date
-  #By processing the fund evaluations in order, we can calculate the number of units of each fund that were purchased.
-  #While we could just store the number of units at the purchase date, this would make it very hard to calculate the
-  #number of units if we have to edit the purchase amount, the fund value, or add a missed purchase.
-
   def processPurchases(self, con):
-    """Process the purchases for the account, updating the account values and the fund units"""
     self.purchases = []
     last_units = copy(self.initial_fund_units)
     if not self.initialUnitValuesIsZero():
@@ -145,7 +124,7 @@ class Account():
         self.account_values_by_id[v.id] = v
         total_units = sum(last_units.values())
         v.unit_price = v.value/total_units
-        purchases = v.fetchUnitPurchases(con, self.funds) #get the purchases for this date
+        purchases = v.fetchUnitPurchases(con, self.funds)
         for p in purchases:
           p.units_purchased = p.amount/v.unit_price
           last_units[p.fund_id] += p.units_purchased
@@ -153,8 +132,6 @@ class Account():
         v.units_out = copy(last_units)
     self.end_units = copy(last_units)
     self.total_units = sum(self.end_units.values())
-
-
 
   def save_workbook_with_retry(self, wbk, filename, parent=None):
       while True:
@@ -172,10 +149,9 @@ class Account():
               )
               if retry == QMessageBox.Cancel:
                   break
-              # Ask for a new filename
               filename, _ = QFileDialog.getSaveFileName(parent, "Save As", filename, "Excel Files (*.xlsx)")
               if not filename:
-                  break  # User cancelled save dialog
+                  break
           except Exception as e:
               QMessageBox.critical(parent, "Error", f"An unexpected error occurred:\n{str(e)}")
               break
@@ -192,8 +168,7 @@ class Account():
     for f in self.funds:
       funds_sheet.append([f.name, f.initial_units, self.end_units[f.id],
                           (self.end_units[f.id] / self.total_units * 100)])
-    # Add a row for the total
-    funds_sheet.append(["", "Total", self.total_units, ""]) 
+    funds_sheet.append(["", "Total", self.total_units, ""])
     purchases_sheet = wbk.create_sheet("Purchases")
     purchases_sheet.append(["Date", "Fund Name", "Amount", "Units Purchased"])
     purchases_sheet.column_dimensions['A'].width = 15
@@ -210,11 +185,8 @@ class Account():
     account_values_sheet.column_dimensions['B'].width = 15
     for av in self.account_values_sorted_by_date:
       account_values_sheet.append([av.date, av.value])
-    # Save the workbook to the specified file
     self.save_workbook_with_retry(wbk, file_name, parent=None)
 
-    
-  ##class ends
 
 def makeAccount(tuple4):
   if len(tuple4) != 4:
@@ -222,15 +194,7 @@ def makeAccount(tuple4):
   return Account(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
 
-###############################
-##
-##  Fund
-##
-###############################
-
-
 class Fund():
-
   def __init__(self, fund_id, name, initial_units,  account_id):
     self.id = fund_id
     self.name = name
@@ -248,39 +212,28 @@ class Fund():
     self.account_id = fund.account_id
 
   def insertIntoDB(self, con):
-    sql_string = ('INSERT into Funds (name, initial_units, account_id) VALUES("%s", %f,  %d)'
-      % (self.name, self.initial_units, self.account_id))
-    cursor = con.execute(sql_string)
+    cursor = con.execute("INSERT INTO Funds (name, initial_units, account_id) VALUES (?, ?, ?)",
+                         (self.name, self.initial_units, self.account_id))
     self.id = cursor.lastrowid
     con.commit()
 
   def updateToDB(self, con):
-    sql_string = 'UPDATE Funds SET name = "%s", initial_units = %f, account_id = %d ' \
-      'WHERE id = %d'  % (self.name, self.initial_units, self.account_id, self.id)
-    con.execute(sql_string)
+    con.execute("UPDATE Funds SET name = ?, initial_units = ?, account_id = ? WHERE id = ?",
+                (self.name, self.initial_units, self.account_id, self.id))
     con.commit()
 
   def deletePurchases(self, con):
-    sql_string = ('DELETE FROM UnitPurchase WHERE fund_id = %d' % self.id)
-    con.execute(sql_string)
+    con.execute("DELETE FROM UnitPurchase WHERE fund_id = ?", (self.id,))
     con.commit()
 
-  ## class ends
 
 def makeFund(tuple4):
   if len(tuple4) != 4:
     raise TupleLengthError()
   return Fund(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
-###############################
-##
-##  AccountValue
-##
-###############################
-
 
 class AccountValue():
-
   def __init__(self, account_value_id, date, value, account_id):
     self.id = account_value_id
     self.date = date
@@ -297,45 +250,35 @@ class AccountValue():
     self.account_id = account_value.account_id
 
   def insertIntoDB(self, con):
-    sql_string = ('INSERT into AccountValue (date, value, account_id) VALUES("%s", %f, %d)'
-      % (self.date, self.value,  self.account_id))
-    cursor = con.execute(sql_string)
+    cursor = con.execute("INSERT INTO AccountValue (date, value, account_id) VALUES (?, ?, ?)",
+                         (self.date, self.value, self.account_id))
     self.id = cursor.lastrowid
     con.commit()
 
   def updateToDB(self, con):
-    sql_string = 'UPDATE AccountValue SET date = "%s", value = %f, account_id = %d WHERE id = %d' \
-      % (self.date, self.value, self.account_id, self.id)
-    con.execute(sql_string)
+    con.execute("UPDATE AccountValue SET date = ?, value = ?, account_id = ? WHERE id = ?",
+                (self.date, self.value, self.account_id, self.id))
     con.commit()
 
   def fetchUnitPurchases(self, con, funds):
     purchases = []
     cursor = con.cursor()
-    funds_str = str([f.id for f in funds]).strip('[]')
-    for row in cursor.execute("SELECT UnitPurchase.id, fund_id, amount, date_id \
-                              FROM UnitPurchase JOIN AccountValue ON UnitPurchase.date_id = AccountValue.id \
-                              where fund_id in (%s) AND date_id = %d"
-                              % (funds_str, self.id)):
+    funds_ids = tuple(f.id for f in funds)
+    query = "SELECT UnitPurchase.id, fund_id, amount, date_id FROM UnitPurchase JOIN AccountValue ON UnitPurchase.date_id = AccountValue.id WHERE fund_id IN ({seq}) AND date_id = ?".format(
+        seq=','.join(['?']*len(funds_ids)))
+    params = list(funds_ids) + [self.id]
+    for row in cursor.execute(query, params):
       purchases += [makeUnitPurchase(row)]
     return purchases
 
-  ##class ends
 
 def makeAccountValue(tuple4):
   if len(tuple4) != 4:
     raise TupleLengthError()
   return AccountValue(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
-###############################
-##
-##  UnitPurchase
-##
-###############################
-
 
 class UnitPurchase():
-
   def __init__(self, purchase_id, fund_id, amount, date_id):
     self.id = purchase_id
     self.fund_id = fund_id
@@ -352,25 +295,19 @@ class UnitPurchase():
     self.date_id = unit_purchase.date_id
 
   def insertIntoDB(self, con):
-    sql_string = ('INSERT into UnitPurchase (fund_id, amount, date_id) VALUES("%s", %f, %d)'
-      % (self.fund_id, self.amount, self.date_id))
-    cursor = con.execute(sql_string)
+    cursor = con.execute("INSERT INTO UnitPurchase (fund_id, amount, date_id) VALUES (?, ?, ?)",
+                         (self.fund_id, self.amount, self.date_id))
     self.id = cursor.lastrowid
     con.commit()
 
   def updateToDB(self, con):
-    sql_string = 'UPDATE UnitPurchase SET fund_id = %d, amount = %f, date_id = %d WHERE id = %d' % \
-      (self.fund_id, self.amount, self.date_id, self.id)
-    con.execute(sql_string)
+    con.execute("UPDATE UnitPurchase SET fund_id = ?, amount = ?, date_id = ? WHERE id = ?",
+                (self.fund_id, self.amount, self.date_id, self.id))
     con.commit()
 
   def deleteFromDB(self, con):
-    sql_string = ('DELETE FROM UnitPurchase WHERE id = %d' % self.id)
-    con.execute(sql_string)
+    con.execute("DELETE FROM UnitPurchase WHERE id = ?", (self.id,))
     con.commit()
-
-
-  ##class ends
 
 
 def makeUnitPurchase(tuple4):
@@ -378,14 +315,6 @@ def makeUnitPurchase(tuple4):
     raise TupleLengthError()
   return UnitPurchase(tuple4[0], tuple4[1], tuple4[2], tuple4[3])
 
-
-
-
-###############################
-##
-##  Helper functions
-##
-###############################
 
 def fillCell(s, r, c, v):
   s.cell(row = r, column = c).value = v
