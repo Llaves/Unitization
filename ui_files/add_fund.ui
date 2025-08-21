@@ -42,10 +42,10 @@
         <bool>false</bool>
        </property>
        <property name="styleSheet">
-        <string notr="true">color: red;</string>
+        <string notr="true">color: red; font-weight: bold;</string>
        </property>
        <property name="text">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Fund name already exists.Choose a different name.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Fund name already exists.Choose a different name</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>

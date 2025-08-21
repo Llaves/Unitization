@@ -77,6 +77,25 @@
     </item>
    </layout>
   </widget>
+  <widget class="QLabel" name="duplicate_account_warning">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>310</y>
+     <width>521</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">color: red; font-weight: bold;</string>
+   </property>
+   <property name="text">
+    <string>Account Name in use - pick another</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>

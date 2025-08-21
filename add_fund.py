@@ -35,7 +35,7 @@ class Ui_addFund(object):
         sizePolicy.setHeightForWidth(self.duplicate_fund_warning.sizePolicy().hasHeightForWidth())
         self.duplicate_fund_warning.setSizePolicy(sizePolicy)
         self.duplicate_fund_warning.setVisible(False)
-        self.duplicate_fund_warning.setStyleSheet("color: red;")
+        self.duplicate_fund_warning.setStyleSheet("color: red; font-weight: bold;")
         self.duplicate_fund_warning.setWordWrap(True)
         self.duplicate_fund_warning.setProperty("leftMargin", 0)
         self.duplicate_fund_warning.setProperty("topMargin", 10)
@@ -78,6 +78,6 @@ class Ui_addFund(object):
         _translate = QtCore.QCoreApplication.translate
         addFund.setWindowTitle(_translate("addFund", "Add Fund"))
         self.label.setText(_translate("addFund", "Fund Name"))
-        self.duplicate_fund_warning.setText(_translate("addFund", "<html><head/><body><p>Fund name already exists.Choose a different name.</p></body></html>"))
+        self.duplicate_fund_warning.setText(_translate("addFund", "Fund name already exists.Choose a different name"))
         self.label_2.setText(_translate("addFund", "Initial Units"))
         self.delete_fund.setText(_translate("addFund", "Delete Fund"))

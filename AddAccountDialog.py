@@ -28,18 +28,38 @@ class AddAccountDialog(QtWidgets.QDialog, Ui_AddAccountDialog):
     self.edit_mode = edit_mode
     self.old_account = copy(old_account)
 
+    # Get all existing account names from the parent's database object
+    self.account_names = [a.name for a in self.parent.accounts]
+
+
     if self.edit_mode:
       self.acct_name.setText(self.old_account.name)
       self.brokerage.setText(self.old_account.brokerage)
       self.account_number.setText(self.old_account.account_no)
       self.setWindowTitle("Edit current account")
+      # In edit mode, don't check against the account's current name
+      if self.old_account.name in self.account_names:
+        self.account_names.remove(self.old_account.name)
+
+    # Hide the warning label by default
+    self.duplicate_account_warning.setVisible(False)
 
   @QtCore.pyqtSlot()
   def onTextChanged(self):
-    self.btn_save.setEnabled(bool(self.account_number.text())
+    # Check if the entered account name already exists
+    name_is_duplicate = self.acct_name.text() in self.account_names
+    
+    # Show or hide the warning label based on whether the name is a duplicate
+    self.duplicate_account_warning.setVisible(name_is_duplicate)
+    
+    # Check that all text fields have content
+    all_fields_filled = (bool(self.account_number.text())
                               and bool(self.acct_name.text())
                               and bool(self.brokerage.text()))
-
+    
+    # The save button is enabled only if all fields are filled AND the name is unique
+    self.btn_save.setEnabled(all_fields_filled and not name_is_duplicate)
+    
   def accept(self):
     self.account = Account(0, self.acct_name.text(), self.brokerage.text(), self.account_number.text())
     if self.edit_mode:
