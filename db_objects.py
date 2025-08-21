@@ -53,6 +53,9 @@ class Account():
       self.funds += [makeFund(row)]
       self.fund_names[row[0]] = row[1]
 
+  def fundNameExists(self, fund_name):
+    return fund_name in self.fund_names.values()
+
   def addFund(self, new_fund, con):
     self.funds += [new_fund]
     self.fund_names[new_fund.id] = new_fund.name
