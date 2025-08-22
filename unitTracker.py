@@ -43,13 +43,23 @@ class FloatTableItem(QtWidgets.QTableWidgetItem):
   def __lt__(self, other):
     return self.num < other.num
 
-
+def get_application_path():
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller bundle
+        return os.path.dirname(sys.executable)
+    else:
+        # Running as normal Python script
+        return os.path.dirname(os.path.abspath(__file__))
 #%%
 
 
 class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def __init__(self, accounts_file, parent=None):
     QtWidgets.QMainWindow.__init__(self, parent)
+    # set the working directory to the application path so that relative paths work
+    app_path = get_application_path()
+    os.chdir(app_path)
+
     self.setupUi(self)
 
     self.setStyleSheet("""
