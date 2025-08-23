@@ -18,6 +18,8 @@ from AccountValueDialog import AccountValueDialog
 from database import connectDB, fetchAccounts
 from db_objects import Fund, AccountValue, UnitPurchase
 from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtCore import Qt
 
 
 class FundTableItem(QtWidgets.QTableWidgetItem):
@@ -50,6 +52,8 @@ def get_application_path():
     else:
         # Running as normal Python script
         return os.path.dirname(os.path.abspath(__file__))
+
+
 #%%
 
 
@@ -61,6 +65,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     os.chdir(app_path)
 
     self.setupUi(self)
+
+    # Set the application icon
+    self.setApplicationIcon()
 
     self.setStyleSheet("""
             QWidget {
@@ -123,6 +130,40 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     # advanced mode options
     self.warnings_enabled = True
 
+  def setApplicationIcon(self):
+    """Set the application icon for the window and taskbar"""
+    icon_path = os.path.join(get_application_path(), "icon.ico")
+    if icon_path:
+      try:
+        # Load the pixmap and create icon
+        pixmap = QPixmap(icon_path)
+        if pixmap.isNull():
+          print(f"Failed to load image from {icon_path}")
+          return
+        
+        # Create icon from pixmap
+        icon = QIcon(pixmap)
+        
+        # Set the window icon
+        self.setWindowIcon(icon)
+        
+        # For better taskbar support, set multiple icon sizes
+        # This helps with taskbar display on Windows/Linux
+        icon.addPixmap(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        
+        # Set for both window and application
+        self.setWindowIcon(icon)
+        QtWidgets.QApplication.instance().setWindowIcon(icon)
+        
+        print(f"Icon loaded from: {icon_path}")
+      except Exception as e:
+        print(f"Failed to load icon from {icon_path}: {e}")
+    else:
+      print("No icon file found. Looked for common icon file names in application directory and subdirectories.")
 
   # capture the close event so that we can properly close the database connection
   def closeEvent(self, event):
@@ -496,7 +537,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def disableTableEdit(self, table):
     table.clearSelection()
     table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers);
-    table.setFocusPolicy(QtCore.Qt.NoFocus);
+    self.setFocusPolicy(QtCore.Qt.NoFocus);
     table.setSelectionMode(QtWidgets.QAbstractItemView.NoSelection);
 
 
@@ -533,7 +574,35 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 #%%
 if (__name__ == '__main__'):
+  # Suppress libpng warnings about color profiles
+  import os
+  os.environ['QT_LOGGING_RULES'] = 'qt5ct.debug=false'
+  
+  # Fix for Windows taskbar icon - must be done before QApplication creation
+  try:
+    # This tells Windows that this is a separate app, not just a Python script
+    from ctypes import windll
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID('stripfamily.unittracker.1.0')
+  except ImportError:
+    pass  # Not Windows or ctypes not available
+  
   app = QtWidgets.QApplication(sys.argv)
+  
+  # Set application properties for better icon handling
+  app.setApplicationName("UnitTracker")
+  app.setApplicationDisplayName("Unit Tracker")
+  app.setApplicationVersion("1.0a")
+
+  
+  # Additional settings for better taskbar integration
+  if hasattr(app, 'setDesktopFileName'):
+    app.setDesktopFileName("unittracker")
+  
   myapp = UnitTracker(sys.argv[1])
   myapp.show()
+  
+  # Force the application to stay in front briefly to help with taskbar icon registration
+  myapp.raise_()
+  myapp.activateWindow()
+  
   sys.exit(app.exec())
