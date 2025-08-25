@@ -159,7 +159,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         self.setWindowIcon(icon)
         QtWidgets.QApplication.instance().setWindowIcon(icon)
         
-        print(f"Icon loaded from: {icon_path}")
       except Exception as e:
         print(f"Failed to load icon from {icon_path}: {e}")
     else:
@@ -574,10 +573,6 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 #%%
 if (__name__ == '__main__'):
-  # Suppress libpng warnings about color profiles
-  import os
-  os.environ['QT_LOGGING_RULES'] = 'qt5ct.debug=false'
-  
   # Fix for Windows taskbar icon - must be done before QApplication creation
   try:
     # This tells Windows that this is a separate app, not just a Python script
