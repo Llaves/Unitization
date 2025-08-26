@@ -324,6 +324,7 @@
     <addaction name="actionEdit_Mode"/>
     <addaction name="actionNo_Warnings"/>
     <addaction name="actionAdd_Account_Value"/>
+    <addaction name="actionBackup_Now"/>
    </widget>
    <addaction name="menuAccounts"/>
    <addaction name="menuFunds"/>
@@ -424,6 +425,11 @@
    </property>
    <property name="shortcut">
     <string>Alt+V</string>
+   </property>
+  </action>
+  <action name="actionBackup_Now">
+   <property name="text">
+    <string>Backup Now</string>
    </property>
   </action>
  </widget>

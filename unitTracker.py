@@ -125,6 +125,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.actionEdit_Mode.triggered.connect(self.editMode)
     self.actionNo_Warnings.triggered.connect(self.noWarnings)
     self.actionAdd_Account_Value.triggered.connect(self.addAccountValue)
+    self.actionBackup_Now.triggered.connect(self.backupDB)
 
 
     # advanced mode options
