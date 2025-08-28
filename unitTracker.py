@@ -478,51 +478,86 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def populateFundsTable(self):
-    row = 0
-    self.funds_table.clearContents()
-    self.funds_table.setRowCount(len(self.active_account.funds) + 1)
-    for f in self.active_account.funds:
-      if (self.funds_table.columnSpan(row, 0) !=1):
-        self.funds_table.setSpan(row, 0, 1, 1) #span may have been changed for totals row of another account
-      if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
-        self.funds_table.setItem(row, 0, FundTableItem(f))
-        self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
-        end_units =self.active_account.end_units[f.id]
-        self.funds_table.setItem(row, 2, FloatTableItem("%.3f", end_units))
-        percentage = end_units / self.active_account.total_units if self.active_account.total_units > 0 else 0
-        self.funds_table.setItem(row, 3, FloatTableItem("%.4f%%", percentage * 100))
-        row += 1
-    #add the totals row
-    self.funds_table.setSpan(row, 0, 1, 2)
-    total_label = QtWidgets.QTableWidgetItem("Total Units")
-    total_label.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
-    self.funds_table.setItem(row, 0, total_label)
-    self.funds_table.setItem(row, 2, FloatTableItem("%.3f", self.active_account.total_units))
+    was_sorting = self.funds_table.isSortingEnabled()
+    self.funds_table.setSortingEnabled(False)
+    self.funds_table.setUpdatesEnabled(False)
+    try:
+      row = 0
+      self.funds_table.clearContents()
+      self.funds_table.setRowCount(len(self.active_account.funds) + 1)
+      for f in self.active_account.funds:
+        if (self.funds_table.columnSpan(row, 0) !=1):
+          self.funds_table.setSpan(row, 0, 1, 1) #span may have been changed for totals row of another account
+        if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
+          self.funds_table.setItem(row, 0, FundTableItem(f))
+          self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
+          end_units =self.active_account.end_units[f.id]
+          self.funds_table.setItem(row, 2, FloatTableItem("%.3f", end_units))
+          percentage = end_units / self.active_account.total_units if self.active_account.total_units > 0 else 0
+          self.funds_table.setItem(row, 3, FloatTableItem("%.4f%%", percentage * 100))
+          row += 1
+      #add the totals row
+      self.funds_table.setSpan(row, 0, 1, 2)
+      total_label = QtWidgets.QTableWidgetItem("Total Units")
+      total_label.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
+      self.funds_table.setItem(row, 0, total_label)
+      self.funds_table.setItem(row, 2, FloatTableItem("%.3f", self.active_account.total_units))  
+    finally:
+      self.funds_table.setUpdatesEnabled(True)
+      self.funds_table.setSortingEnabled(was_sorting)
+
 
   def populatePurchasesTable(self):
-    row = 0
-    self.purchases_table.clearContents()
-    self.purchases_table.setRowCount(len(self.active_account.purchases))
-    for p in self.active_account.purchases:
-      if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[p.fund_id] == 0)):
-        self.purchases_table.setItem(row, 0,
-                                     PurchasesTableItem(self.active_account.account_values_by_id[p.date_id].date, p))
-        self.purchases_table.setItem(row, 1,
-                                     QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
-        self.purchases_table.setItem(row, 2, FloatTableItem("$%.2f", p.amount))
-        self.purchases_table.setItem(row, 3, FloatTableItem("%.3f", p.units_purchased))
-        row += 1
-    self.purchases_table.setRowCount(row)
+    # Guard: disable sorting & repaints while filling
+    was_sorting = self.purchases_table.isSortingEnabled()
+    self.purchases_table.setSortingEnabled(False)
+    self.purchases_table.setUpdatesEnabled(False)
+    try:
+        row = 0
+        self.purchases_table.clearContents()
+
+        # Build the rows we actually want to show
+        filtered = []
+        for p in self.active_account.purchases:
+            if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[p.fund_id] == 0):
+                filtered.append(p)
+
+        # Size exactly once
+        self.purchases_table.setRowCount(len(filtered))
+
+        # Fill
+        for row, p in enumerate(filtered):
+            self.purchases_table.setItem(
+                row, 0,
+                PurchasesTableItem(self.active_account.account_values_by_id[p.date_id].date, p)
+            )
+            self.purchases_table.setItem(row, 1,
+                QtWidgets.QTableWidgetItem(self.active_account.fund_names[p.fund_id]))
+            self.purchases_table.setItem(row, 2, FloatTableItem("$%.2f", p.amount))
+            self.purchases_table.setItem(row, 3, FloatTableItem("%.3f", p.units_purchased))
+    finally:
+        # Restore UI behavior
+        self.purchases_table.setUpdatesEnabled(True)
+        self.purchases_table.setSortingEnabled(was_sorting)
+
 
   def populateAccountValuesTable(self):
-    row = 0
-    self.account_values_table.clearContents()
-    self.account_values_table.setRowCount(len(self.active_account.account_values_sorted_by_date))
-    for av in self.active_account.account_values_sorted_by_date:
-      self.account_values_table.setItem(row, 0, AccountValuesTableItem(av))
-      self.account_values_table.setItem(row, 1, FloatTableItem("$%.2f", av.value))
-      row += 1
+    was_sorting = self.account_values_table.isSortingEnabled()
+    self.account_values_table.setSortingEnabled(False)
+    self.account_values_table.setUpdatesEnabled(False)
+    try:
+      row = 0
+      self.account_values_table.clearContents()
+      self.account_values_table.setRowCount(len(self.active_account.account_values_sorted_by_date))
+      for av in self.active_account.account_values_sorted_by_date:
+        self.account_values_table.setItem(row, 0, AccountValuesTableItem(av))
+        self.account_values_table.setItem(row, 1, FloatTableItem("$%.2f", av.value))
+        row += 1
+    finally:
+        self.account_values_table.setUpdatesEnabled(True)
+        self.account_values_table.setSortingEnabled(was_sorting)
 
+        
   def tableTotalWidth(self, table):
     width = 0
     for col in range(table.columnCount()):
