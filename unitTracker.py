@@ -91,6 +91,15 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.setMaximumWidth(self.tableTotalWidth(self.funds_table) + 2)
     self.purchases_table.setMaximumWidth(self.tableTotalWidth(self.purchases_table) + 2)
     self.account_values_table.setMaximumWidth(self.tableTotalWidth(self.account_values_table) + 2)
+    #enable sort in funds table
+    self.funds_table.setSortingEnabled(False)             # disable built-in sort
+    hh = self.funds_table.horizontalHeader()
+    hh.setSortIndicatorShown(True)
+    hh.sectionClicked.connect(self.onFundsHeaderClicked)
+    self._funds_sort_col = 0
+    self._funds_sort_order = QtCore.Qt.AscendingOrder
+
+
 
 
     #  disable menu items until account is loaded
@@ -482,29 +491,88 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.funds_table.setSortingEnabled(False)
     self.funds_table.setUpdatesEnabled(False)
     try:
-      row = 0
-      self.funds_table.clearContents()
-      self.funds_table.setRowCount(len(self.active_account.funds) + 1)
-      for f in self.active_account.funds:
-        if (self.funds_table.columnSpan(row, 0) !=1):
-          self.funds_table.setSpan(row, 0, 1, 1) #span may have been changed for totals row of another account
-        if (not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0)):
-          self.funds_table.setItem(row, 0, FundTableItem(f))
-          self.funds_table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
-          end_units =self.active_account.end_units[f.id]
-          self.funds_table.setItem(row, 2, FloatTableItem("%.3f", end_units))
-          percentage = end_units / self.active_account.total_units if self.active_account.total_units > 0 else 0
-          self.funds_table.setItem(row, 3, FloatTableItem("%.4f%%", percentage * 100))
-          row += 1
-      #add the totals row
-      self.funds_table.setSpan(row, 0, 1, 2)
-      total_label = QtWidgets.QTableWidgetItem("Total Units")
-      total_label.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
-      self.funds_table.setItem(row, 0, total_label)
-      self.funds_table.setItem(row, 2, FloatTableItem("%.3f", self.active_account.total_units))  
+        table = self.funds_table
+        table.clearContents()
+
+        # First pass: count visible rows
+        visible_funds = []
+        for f in self.active_account.funds:
+            if not (self.actionHide_Empty.isChecked() and self.active_account.end_units[f.id] == 0):
+                visible_funds.append(f)
+
+        # Size to visible rows + 1 for totals
+        table.setRowCount(len(visible_funds) + 1)
+
+        # Fill visible rows
+        row = 0
+        for f in visible_funds:
+            if (table.columnSpan(row, 0) != 1):
+                table.setSpan(row, 0, 1, 1)  # undo any leftover spans
+            table.setItem(row, 0, FundTableItem(f))
+            table.setItem(row, 1, FloatTableItem("%.3f", f.initial_units))
+            end_units = self.active_account.end_units[f.id]
+            table.setItem(row, 2, FloatTableItem("%.3f", end_units))
+            percentage = end_units / self.active_account.total_units if self.active_account.total_units > 0 else 0
+            table.setItem(row, 3, FloatTableItem("%.4f%%", percentage * 100))
+            row += 1
+
+        # Totals row goes at the real last index
+        totals_row = row
+        table.setSpan(totals_row, 0, 1, 2)
+        total_label = QtWidgets.QTableWidgetItem("Total Units")
+        total_label.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
+        table.setItem(totals_row, 0, total_label)
+        table.setItem(totals_row, 2, FloatTableItem("%.3f", self.active_account.total_units))
     finally:
-      self.funds_table.setUpdatesEnabled(True)
-      self.funds_table.setSortingEnabled(was_sorting)
+        self.funds_table.setUpdatesEnabled(True)
+        self.funds_table.setSortingEnabled(was_sorting)
+
+  def onFundsHeaderClicked(self, col):
+    # toggle order if same column, otherwise reset to ascending
+    if col == self._funds_sort_col:
+        self._funds_sort_order = (
+            QtCore.Qt.DescendingOrder
+            if self._funds_sort_order == QtCore.Qt.AscendingOrder
+            else QtCore.Qt.AscendingOrder
+        )
+    else:
+        self._funds_sort_col = col
+        self._funds_sort_order = QtCore.Qt.AscendingOrder
+
+    # show the correct arrow
+    self.funds_table.horizontalHeader().setSortIndicator(
+        self._funds_sort_col, self._funds_sort_order
+    )
+
+    self.sortFundsPreservingTotals(self._funds_sort_col, self._funds_sort_order)
+
+  def sortFundsPreservingTotals(self, column, order):
+    table = self.funds_table
+
+    # ensure totals row is physically last (see your populate fix)
+    totals_row_idx = table.rowCount() - 1
+    if totals_row_idx < 0:
+        return
+
+    # Take totals row out, so it never gets sorted
+    totals_items = [table.takeItem(totals_row_idx, c) for c in range(table.columnCount())]
+    table.removeRow(totals_row_idx)
+
+    # Let Qt sort rows (works even with setSortingEnabled(False))
+    table.sortItems(column, order)
+
+    # Put totals row back at the end (and restore any spans/format)
+    new_totals_row = table.rowCount()
+    table.insertRow(new_totals_row)
+    for c, it in enumerate(totals_items):
+        if it is not None:
+            table.setItem(new_totals_row, c, it)
+    # If you had a span on the totals label cell:
+    try:
+        table.setSpan(new_totals_row, 0, 1, 2)
+    except Exception:
+        pass
+
 
 
   def populatePurchasesTable(self):
