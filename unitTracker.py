@@ -523,6 +523,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         total_label.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
         table.setItem(totals_row, 0, total_label)
         table.setItem(totals_row, 2, FloatTableItem("%.3f", self.active_account.total_units))
+        self.styleTotalsRow(totals_row)
     finally:
         self.funds_table.setUpdatesEnabled(True)
         self.funds_table.setSortingEnabled(was_sorting)
@@ -572,8 +573,25 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         table.setSpan(new_totals_row, 0, 1, 2)
     except Exception:
         pass
+    self.styleTotalsRow(new_totals_row)
 
 
+  def styleTotalsRow(self, row):
+      """Apply bold + shaded style to the totals row."""
+      table = self.funds_table
+      for col in range(table.columnCount()):
+          item = table.item(row, col)
+          if item is not None:
+              # Bold font
+              font = item.font()
+              font.setBold(True)
+              item.setFont(font)
+
+              # Light gray background
+              item.setBackground(QtGui.QColor("#f0f0f0"))
+
+              # Darker text
+              item.setForeground(QtGui.QBrush(QtGui.QColor("#202020")))
 
   def populatePurchasesTable(self):
     # Guard: disable sorting & repaints while filling
