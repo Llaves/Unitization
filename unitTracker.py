@@ -9,7 +9,8 @@ import sys
 import os
 import shutil
 import datetime as date
-from main_window import *
+from PyQt5 import QtCore, QtGui, QtWidgets
+from main_window import Ui_MainWindow
 from AddAccountDialog import AddAccountDialog
 from SelectAccountDialog import SelectAccountDialog
 from AddFundDialog import AddFundDialog
@@ -61,9 +62,8 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def __init__(self, accounts_file, parent=None):
     QtWidgets.QMainWindow.__init__(self, parent)
     # set the working directory to the application path so that relative paths work
-    app_path = get_application_path()
-    os.chdir(app_path)
-
+    self.app_path = get_application_path()
+   
     self.setupUi(self)
 
     # Set the application icon
@@ -143,40 +143,43 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def setApplicationIcon(self):
     """Set the application icon for the window and taskbar"""
     icon_path = os.path.join(get_application_path(), "icon.ico")
-    if icon_path:
+    if os.path.isfile(icon_path):
       try:
-        # Load the pixmap and create icon
-        pixmap = QPixmap(icon_path)
-        if pixmap.isNull():
-          print(f"Failed to load image from {icon_path}")
-          return
+	        pixmap = QPixmap(icon_path)
+          if pixmap.isNull():
+            print(f"Failed to load image from {icon_path}")
+            return
+				  
+          # Create icon from pixmap
+          icon = QIcon(pixmap)
         
-        # Create icon from pixmap
-        icon = QIcon(pixmap)
+         # Set the window icon
+          self.setWindowIcon(icon)
         
-        # Set the window icon
-        self.setWindowIcon(icon)
+          # For better taskbar support, set multiple icon sizes
+          # This helps with taskbar display on Windows/Linux
+          icon.addPixmap(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+          icon.addPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+          icon.addPixmap(pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+          icon.addPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+          icon.addPixmap(pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         
-        # For better taskbar support, set multiple icon sizes
-        # This helps with taskbar display on Windows/Linux
-        icon.addPixmap(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        icon.addPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        icon.addPixmap(pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        icon.addPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        icon.addPixmap(pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        
-        # Set for both window and application
-        self.setWindowIcon(icon)
-        QtWidgets.QApplication.instance().setWindowIcon(icon)
+          # Set for both window and application
+          self.setWindowIcon(icon)
+          QtWidgets.QApplication.instance().setWindowIcon(icon)
         
       except Exception as e:
         print(f"Failed to load icon from {icon_path}: {e}")
     else:
-      print("No icon file found. Looked for common icon file names in application directory and subdirectories.")
+      print("No icon file found.")
+		
+
 
   # capture the close event so that we can properly close the database connection
   def closeEvent(self, event):
-    self.con.close()
+    if hasattr(self, 'con') and self.con:
+        self.con.close()
+    super().closeEvent(event)  # Always call parent
 
 
   def fillAccountSummaryBox(self):
@@ -367,9 +370,18 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     else:
       self.actionEdit_Account.setEnabled(False)
       self.actionDelete_Account.setEnabled(False)
-      self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
-      self.purchases_table.cellDoubleClicked.disconnect(self.purchasesTableEdit)
-      self.account_values_table.cellDoubleClicked.disconnect(self.accountValuesTableEdit)
+      try:
+        self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
+      except TypeError:
+        pass  # Already disconnected
+      try:
+        self.purchases_table.cellDoubleClicked.disconnect(self.purchasesTableEdit)
+      except TypeError:
+        pass  # Already disconnected
+      try:
+        self.account_values_table.cellDoubleClicked.disconnect(self.accountValuesTableEdit)
+      except TypeError:
+        pass  # Already disconnected      
       self.disableEditAllTables()
  
   def addAccountValue(self):
@@ -548,6 +560,11 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.sortFundsPreservingTotals(self._funds_sort_col, self._funds_sort_order)
 
   def sortFundsPreservingTotals(self, column, order):
+    """
+    Sort the funds table while keeping the totals row fixed at the bottom.
+    Since Qt's sortItems() would move the totals row, we temporarily remove it,
+    sort, then reinsert it.
+    """
     table = self.funds_table
 
     # ensure totals row is physically last (see your populate fix)
@@ -682,15 +699,18 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 ################################
 
   def backupDB(self):
-    # check for backup directory
-    backup_dir = os.path.join(os.path.dirname(self.db_filename), "backup")
-    if (not os.path.exists(backup_dir)):
-      # create the backup directory
-      os.mkdir(backup_dir)
-    # copy the database file to the backup directory, appending the date
-    db_name = os.path.splitext(os.path.basename(self.db_filename))[0]
-    backup_file = os.path.join(backup_dir, db_name + "_" + date.datetime.today().strftime("%Y-%m-%d-%H-%M") + ".db")
-    shutil.copyfile(self.db_filename, backup_file)
+    try:
+        backup_dir = os.path.join(os.path.dirname(self.db_filename), "backup")
+        os.makedirs(backup_dir, exist_ok=True)  # Safer than exists() + mkdir
+
+        db_name = os.path.splitext(os.path.basename(self.db_filename))[0]
+        timestamp = date.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        backup_file = os.path.join(backup_dir, f"{db_name}_{timestamp}.db")
+
+        shutil.copyfile(self.db_filename, backup_file)
+    except Exception as e:
+        print(f"Backup failed: {e}")
+        # Optionally show user warning
 
 
 #%%
