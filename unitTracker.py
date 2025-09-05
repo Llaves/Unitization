@@ -71,7 +71,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
     self.setStyleSheet("""
             QWidget {
-                font-size: 24px;
+                font-size: 12pt;
             }""")
             
     # set up the funds, purchases tables
@@ -145,29 +145,29 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     icon_path = os.path.join(get_application_path(), "icon.ico")
     if os.path.isfile(icon_path):
       try:
-	        pixmap = QPixmap(icon_path)
-          if pixmap.isNull():
-            print(f"Failed to load image from {icon_path}")
-            return
-				  
-          # Create icon from pixmap
-          icon = QIcon(pixmap)
-        
-         # Set the window icon
-          self.setWindowIcon(icon)
-        
-          # For better taskbar support, set multiple icon sizes
-          # This helps with taskbar display on Windows/Linux
-          icon.addPixmap(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-          icon.addPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-          icon.addPixmap(pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-          icon.addPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-          icon.addPixmap(pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        
-          # Set for both window and application
-          self.setWindowIcon(icon)
-          QtWidgets.QApplication.instance().setWindowIcon(icon)
-        
+        pixmap = QPixmap(icon_path)
+        if pixmap.isNull():
+          print(f"Failed to load image from {icon_path}")
+          return
+
+        # Create icon from pixmap
+        icon = QIcon(pixmap)
+
+        # Set the window icon
+        self.setWindowIcon(icon)
+
+        # For better taskbar support, set multiple icon sizes
+        # This helps with taskbar display on Windows/Linux
+        icon.addPixmap(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(32, 32, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(48, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(64, 64, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        icon.addPixmap(pixmap.scaled(128, 128, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+        # Set for both window and application
+        self.setWindowIcon(icon)
+        QtWidgets.QApplication.instance().setWindowIcon(icon)
+
       except Exception as e:
         print(f"Failed to load icon from {icon_path}: {e}")
     else:
@@ -198,28 +198,23 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     self.warnings_enabled = not self.actionNo_Warnings.isChecked()
 
   def noInitialUnitsWarning(self):
-    msg_box = QMessageBox()
-    msg_box.setText("You must have at least one fund with non-zero initial units in order "\
-                    "for entries to show in the purchases tab")
-
-    msg_box.setWindowTitle("UnitTracker Warning")
-    msg_box.setStandardButtons(QMessageBox.Close)
-    msg_box.exec()
+    self.showWarningDialog(
+        "UnitTracker Warning",
+        "You must have at least one fund with non-zero initial units in order "
+        "for entries to show in the purchases tab"
+    )
 
   def dangerousEditWarning(self):
-    if (self.warnings_enabled):
-      msg_box = QMessageBox()
-      msg_box.setText("Warning: The edit you are about to perform cannot be undone")
-      msg_box.setInformativeText(" This edit may result in recomputation of all fund units dating back" \
-                                 " to the start of this account\n" \
-                                   "Click Yes to continue with this edit, otherwise click Cancel")
-      msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-      msg_box.setIcon(QMessageBox.Warning)
-      msg_box.setWindowTitle("UnitTracker Warning")
-      msg_box.setDefaultButton(QMessageBox.Cancel)
-      return (msg_box.exec() == QMessageBox.Yes)
-    else:
-      return True
+      if not self.warnings_enabled:
+          return True
+      
+      return self.showYesCancelDialog(
+          "UnitTracker Warning",
+          "Warning: The edit you are about to perform cannot be undone",
+          "This edit may result in recomputation of all fund units dating back "
+          "to the start of this account\n"
+          "Click Yes to continue with this edit, otherwise click Cancel"
+      )
 
 ###############################
 ##
@@ -253,21 +248,21 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         self.fillAccountSummaryBox()
 
   def deleteAccount(self):
-    if (self.dangerousEditWarning()):
-      dialog = SelectAccountDialog(self)
-      dialog.setWindowTitle("Select Account to Delete")
-      if (dialog.exec() == QtWidgets.QDialog.Accepted):
-        if (dialog.selectedAccount() == self.active_account):
-          msg_box = QMessageBox()
-          msg_box.setText("You cannot delete the currently active account")
-          msg_box.setInformativeText("Open a different account and try again")
-          msg_box.setStandardButtons(QMessageBox.Close )
-          msg_box.setWindowTitle("UnitTracker Warning")
-          msg_box.exec()
+    if not self.dangerousEditWarning():
+        return
+    dialog = SelectAccountDialog(self)
+    dialog.setWindowTitle("Select Account to Delete")
+    if dialog.exec() == QtWidgets.QDialog.Accepted:
+        if dialog.selectedAccount() == self.active_account:
+            self.showWarningDialog(
+                "UnitTracker Warning",
+                "You cannot delete the currently active account",
+                "Open a different account and try again"
+            )
         else:
-          acct = dialog.selectedAccount()
-          acct.deleteAccount(self.con)
-          self.accounts.remove(acct)
+            acct = dialog.selectedAccount()
+            acct.deleteAccount(self.con)
+            self.accounts.remove(acct)
 
   def setActiveAccount(self, account):
       self.active_account = account
@@ -351,38 +346,37 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def editMode(self):
-    if (self.actionEdit_Mode.isChecked()):
-      if self.active_account != None:
-        self.actionEdit_Account.setEnabled(True)     
-      self.actionDelete_Account.setEnabled(True)
-      self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
-      self.purchases_table.cellDoubleClicked.connect(self.purchasesTableEdit)
-      self.account_values_table.cellDoubleClicked.connect(self.accountValuesTableEdit)
-      self.enableEditAllTables()
+    if self.actionEdit_Mode.isChecked():
+        if self.active_account is not None:
+            self.actionEdit_Account.setEnabled(True)     
+        self.actionDelete_Account.setEnabled(True)
+        self.funds_table.cellDoubleClicked.connect(self.fundTableEdit)
+        self.purchases_table.cellDoubleClicked.connect(self.purchasesTableEdit)
+        self.account_values_table.cellDoubleClicked.connect(self.accountValuesTableEdit)
+        self.enableEditAllTables()
 
-      if (self.warnings_enabled):
-        msg_box = QMessageBox()
-        msg_box.setText("You have enabled potentially dangerous edits that cannot be undone.\n"\
-                        "Proceed with care")
-        msg_box.setStandardButtons(QMessageBox.Close)
-        msg_box.setWindowTitle("UnitTracker Warning")
-        msg_box.exec()
+        if self.warnings_enabled:
+            self.showWarningDialog(
+                "UnitTracker Warning",
+                "You have enabled potentially dangerous edits that cannot be undone.\n"
+                "Proceed with care"
+            )
     else:
-      self.actionEdit_Account.setEnabled(False)
-      self.actionDelete_Account.setEnabled(False)
-      try:
-        self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
-      except TypeError:
-        pass  # Already disconnected
-      try:
-        self.purchases_table.cellDoubleClicked.disconnect(self.purchasesTableEdit)
-      except TypeError:
-        pass  # Already disconnected
-      try:
-        self.account_values_table.cellDoubleClicked.disconnect(self.accountValuesTableEdit)
-      except TypeError:
-        pass  # Already disconnected      
-      self.disableEditAllTables()
+        self.actionEdit_Account.setEnabled(False)
+        self.actionDelete_Account.setEnabled(False)
+        try:
+            self.funds_table.cellDoubleClicked.disconnect(self.fundTableEdit)
+        except TypeError:
+            pass  # Already disconnected
+        try:
+            self.purchases_table.cellDoubleClicked.disconnect(self.purchasesTableEdit)
+        except TypeError:
+            pass  # Already disconnected
+        try:
+            self.account_values_table.cellDoubleClicked.disconnect(self.accountValuesTableEdit)
+        except TypeError:
+            pass  # Already disconnected      
+        self.disableEditAllTables()
  
   def addAccountValue(self):
     dialog = AccountValueDialog(self)
@@ -406,73 +400,74 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def fundTableEdit(self, row, col):
-    if (row == self.funds_table.rowCount() - 1):
-      self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), False)
-      return
+    if row == self.funds_table.rowCount() - 1:
+        self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), False)
+        return
     fund = self.funds_table.item(row, 0).fund
     self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), True)
     dialog = AddFundDialog(self, True, fund)
-    if (dialog.exec() == QtWidgets.QDialog.Accepted):
-      if (dialog.delete()):
-        if (self.warnings_enabled):
-          msg_box = QMessageBox()
-          msg_box.setText("Deleting a fund cannot be undone. You should only delete a fund if it was " \
-                          "created in error. If you're just trying to hide the fund because it has " \
-                            "been zeroed out, use Hide Empty on the Funds menu" \
-                              "Click Yes to continue with delete, otherwise click Cancel")
-          msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-          msg_box.setWindowTitle("UnitTracker Warning")
-          if (msg_box.exec() == QMessageBox.Yes):
-            self.active_account.deleteFund(fund, self.con)
+    if dialog.exec() == QtWidgets.QDialog.Accepted:
+        if dialog.delete():
+            should_delete = True
+            if self.warnings_enabled:
+                should_delete = self.showYesCancelDialog(
+                    "UnitTracker Warning",
+                    "Deleting a fund cannot be undone. You should only delete a fund if it was "
+                    "created in error. If you're just trying to hide the fund because it has "
+                    "been zeroed out, use Hide Empty on the Funds menu\n"
+                    "Click Yes to continue with delete, otherwise click Cancel"
+                )
+            
+            if should_delete:
+                self.active_account.deleteFund(fund, self.con)
         else:
-            self.active_account.deleteFund(fund, self.con)
-      else:
-        fund.copy(dialog.fund)
-        fund.updateToDB(self.con)
-        if (dialog.initialUnitsChanged()):
-          self.active_account.fundChanged(self.con)
-        self.active_account.fund_names[fund.id] = fund.name
-      self.populateFundsTable()
-      self.populatePurchasesTable()
+            fund.copy(dialog.fund)
+            fund.updateToDB(self.con)
+            if dialog.initialUnitsChanged():
+                self.active_account.fundChanged(self.con)
+            self.active_account.fund_names[fund.id] = fund.name
+        self.populateFundsTable()
+        self.populatePurchasesTable()
     self.funds_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 2), False)
+
 
 
   def purchasesTableEdit(self, row, col):
     purchase = self.purchases_table.item(row, 0).purchase
     self.purchases_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 3), True)
     dialog = UnitPurchaseDialog(self, True, purchase)
-    if (dialog.exec() == QtWidgets.QDialog.Accepted):
-      if (dialog.delete()):
-        if (self.warnings_enabled):
-          msg_box = QMessageBox()
-          msg_box.setText("Deleting a purchase cannot be undone. You should only delete a purchase if it was " \
-                          "created in error. If you're just trying to hide a purchase because the fund because it has " \
-                            "been zeroed out, use Hide Empty on the Funds menu" \
-                              "Click Yes to continue with delete, otherwise click Cancel")
-          msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-          msg_box.setWindowTitle("UnitTracker Warning")
-          if (msg_box.exec() == QMessageBox.Yes):
-            purchase.deleteFromDB(self.con)
+    if dialog.exec() == QtWidgets.QDialog.Accepted:
+        if dialog.delete():
+            should_delete = True
+            if self.warnings_enabled:
+                should_delete = self.showYesCancelDialog(
+                    "UnitTracker Warning",
+                    "Deleting a purchase cannot be undone. You should only delete a purchase if it was "
+                    "created in error. If you're just trying to hide a purchase because the fund because it has "
+                    "been zeroed out, use Hide Empty on the Funds menu\n"
+                    "Click Yes to continue with delete, otherwise click Cancel"
+                )
+            
+            if should_delete:
+                purchase.deleteFromDB(self.con)
         else:
-          purchase.deleteFromDB(self.con)
-      else:
-        # get existing AccountValue obj or create a new one
-        if (dialog.knownAccountValueObj()):
-          av = dialog.knownAccountValueObj()
-        else:
-         # create a new AccountValue object
-          av = AccountValue(0, dialog.date(), dialog.accountValueDollars(), self.active_account.id)
-          av.insertIntoDB(self.con)
-          # update the account_values list in active account and update display
-          self.active_account.addValue(av)
-          self.populateAccountValuesTable()
-        # update the unit purchase object
-        purchase.date_id = av.id
-        purchase.amount = dialog.dollarsPurchased()
-        purchase.updateToDB(self.con)
-      self.active_account.processPurchases(self.con)
-      self.populatePurchasesTable()
-      self.populateFundsTable()
+            # get existing AccountValue obj or create a new one
+            if dialog.knownAccountValueObj():
+                av = dialog.knownAccountValueObj()
+            else:
+                # create a new AccountValue object
+                av = AccountValue(0, dialog.date(), dialog.accountValueDollars(), self.active_account.id)
+                av.insertIntoDB(self.con)
+                # update the account_values list in active account and update display
+                self.active_account.addValue(av)
+                self.populateAccountValuesTable()
+            # update the unit purchase object
+            purchase.date_id = av.id
+            purchase.amount = dialog.dollarsPurchased()
+            purchase.updateToDB(self.con)
+        self.active_account.processPurchases(self.con)
+        self.populatePurchasesTable()
+        self.populateFundsTable()
     self.purchases_table.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(row, 0, row, 3), False)
 
   def accountValuesTableEdit(self, row, col):
@@ -712,6 +707,34 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         print(f"Backup failed: {e}")
         # Optionally show user warning
 
+  def showWarningDialog(self, title, message, informative_text=""):
+      """
+      Show a warning dialog with only a Close button.
+      Returns None (for consistency, though return value isn't used).
+      """
+      msg_box = QMessageBox(self)
+      msg_box.setWindowTitle(title)
+      msg_box.setText(message)
+      if informative_text:
+          msg_box.setInformativeText(informative_text)
+      msg_box.setIcon(QMessageBox.Warning)
+      msg_box.setStandardButtons(QMessageBox.Close)
+      msg_box.exec()
+
+  def showYesCancelDialog(self, title, message, informative_text="", default_button=QMessageBox.Cancel):
+      """
+      Show a warning dialog with Yes/Cancel buttons.
+      Returns True if Yes is clicked, False if Cancel is clicked.
+      """
+      msg_box = QMessageBox(self)
+      msg_box.setWindowTitle(title)
+      msg_box.setText(message)
+      if informative_text:
+          msg_box.setInformativeText(informative_text)
+      msg_box.setIcon(QMessageBox.Warning)
+      msg_box.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
+      msg_box.setDefaultButton(default_button)
+      return msg_box.exec() == QMessageBox.Yes
 
 #%%
 if (__name__ == '__main__'):
