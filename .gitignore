@@ -23,5 +23,6 @@ Python/*
 web_version/*
 Documentation/*
 ExcelVersion/*
+WebDocs/site/*
 
 .spyproject/*
