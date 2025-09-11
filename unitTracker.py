@@ -535,6 +535,12 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         self.funds_table.setUpdatesEnabled(True)
         self.funds_table.setSortingEnabled(was_sorting)
 
+
+    self.funds_table.horizontalHeader().setSortIndicator(
+        self._funds_sort_col, self._funds_sort_order
+    )
+    self.sortFundsPreservingTotals(self._funds_sort_col, self._funds_sort_order)
+
   def onFundsHeaderClicked(self, col):
     # toggle order if same column, otherwise reset to ascending
     if col == self._funds_sort_col:
@@ -548,11 +554,13 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
         self._funds_sort_order = QtCore.Qt.AscendingOrder
 
     # show the correct arrow
-    self.funds_table.horizontalHeader().setSortIndicator(
-        self._funds_sort_col, self._funds_sort_order
-    )
+    hh = self.funds_table.horizontalHeader()
+    hh.setSortIndicator(self._funds_sort_col, self._funds_sort_order)
+    hh.setSortIndicatorShown(True)   # ✅ ensure the arrow is visible
 
+    # perform the custom sort (totals row preserved)
     self.sortFundsPreservingTotals(self._funds_sort_col, self._funds_sort_order)
+
 
   def sortFundsPreservingTotals(self, column, order):
     """
