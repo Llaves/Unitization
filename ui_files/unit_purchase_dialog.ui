@@ -34,7 +34,7 @@
     <rect>
      <x>50</x>
      <y>40</y>
-     <width>581</width>
+     <width>610</width>
      <height>251</height>
     </rect>
    </property>
@@ -105,8 +105,13 @@
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
        <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
-         <string>Account Value on Purchase Date </string>
+         <string>Account Value on Purcahse Date </string>
         </property>
        </widget>
       </item>
@@ -120,6 +125,11 @@
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
         </property>
         <property name="alignment">
          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
