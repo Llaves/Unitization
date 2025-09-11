@@ -1,0 +1,8 @@
+site_name: UnitTracker Documentation
+
+theme: 
+    name: material
+
+nav:
+  - 'Home': 'index.md'
+  - 'Installation': 'installation.md'
