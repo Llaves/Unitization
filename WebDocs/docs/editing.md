@@ -36,4 +36,38 @@ This dialog will pop-up:
 
 ![Delete Account Dialog](img/delete_account_dialog.png)
 
-You can select any account *except the currently open account* to delete. If you select the open account, the request will be refused. 
+You can select any account to delete *except the currently open account*. If you select the open account, the request will be refused. 
+
+## Editing the tables
+
+Each of the tables can be edited by double clicking any cell in the row you wish to edit. 
+
+### Editing the Funds table
+
+Double-clicking any cell with pop up this dialog with the fund shown in the row you clicked:
+
+![Edit Funds Table](img/edit_funds_table.png)
+
+From this dialog you can change the name of a fund, change the number of initial units, or completely delete the fund. Changing the initial units or deleting the fund will cause every other fund to recalculate the number of units it owns. 
+
+### Editing the Purchases table
+
+Double-clicking any cell will bring up this dialog for the purchase shown in the row you clicked.
+
+![Edit Purchases Table](img/edit_purchase_table.png)
+
+Because you can't change the fund associated with this purchase, if the problem is that you assigned the purchase to the wrong fund you will have to delete the purchase and create a new one using the New Purchase menu item. To delete the purchase, just check the `Delete Purchase` box and click OK. 
+
+Recall that if you change the Dollars Invested, this will ripple through the account changing the units purchased in every transaction that follows this one. 
+
+You can change the date, but again, this will cause a ripple through all the funds. If you change to date to a date for which the Account Value is known, the account value box will update to the known value and remain gray indicating that you can't update the value from this dialog. If you need to changed the account value for a date, you will have to do that from the Account Values table.
+
+### Editing the Account Values table
+
+The Account Values table shows the total value of your endowment account on various dates. The source of this value is external to UnitTracker &mdash; it probably comes from either a statememnt from your investment advisor, or from checking the value of your investment portfolio on your broker's website. 
+
+Double-clcking an entry in the Account Values table will bring up this dialog:
+
+![Edit Account Values Table](img/edit_account_value.png). 
+
+Fund purchases are tied to the account value on the date of the purchase. This means that changing the date of an account value entry or, deleting the entry, would leave the fund purchase with no way to compute the number of shares. Because of this, you cannot change the date in the edit dialog, nor can you delete the entry. If you have a fund purchase tied to the wrong date, [edit the fund purchase](#editing-the-purchases-table).

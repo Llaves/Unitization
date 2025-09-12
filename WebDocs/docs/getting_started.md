@@ -10,7 +10,7 @@ Fill in the appropriate values for the new account. The values in the fields are
 
 ## Starting with a non-unitized endowment
 If your endowment is not already unitized, create a single fund that represents the total assets of your account. You can select the number of shares to be anything you want, but it is often convenient to select a number of shares so that the initial value is around $10 per share. To do so, just set the number of shares to be the value of the account divided by 10. You don’t need to keep all the decimal places, but there is no harm in doing so.
-To create the initial fund, click on Funds->New Fund:
+To create the initial fund, click on `Funds->New Fund`:
 
 ![New Fund](img/new_fund_dialog.png)
 

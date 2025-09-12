@@ -9,4 +9,9 @@ nav:
   - 'Basics': 'basics.md'
   - 'Getting Started': 'getting_started.md'
   - 'Maintaining the Account': 'maintaining_the_account.md'
-  - 'Appendix A - Commingled Iinvestments and Unitization': 'appendix_a.md'
+  - 'Editing': 'editing.md'
+  - 'Appendix A: Commingled Investments and Unitization': 'appendix_a.md'
+
+markdown_extensions:
+  - toc:
+      permalink: "#"
