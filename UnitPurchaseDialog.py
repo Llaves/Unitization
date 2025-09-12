@@ -137,12 +137,12 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
       
       # Check if date is older than any existing date
       latest_date = self.getLatestDate()
-      if latest_date and date_str < latest_date:
+      if latest_date and date_str < latest_date and self.parent.warnings_enabled:
           # Show warning dialog
           msg = QtWidgets.QMessageBox()
           msg.setIcon(QtWidgets.QMessageBox.Warning)
           msg.setWindowTitle("Date Warning")
-          msg.setText(f"Warning: The selected date ({date_str}) is older than the latest existing date ({latest_date}).")
+          msg.setText(f"Warning: The selected date ({date_str}) is older than the latest existing purchase date ({latest_date}).")
           msg.setInformativeText("This may cause issues with your account history. Do you want to continue?")
           msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
           msg.setDefaultButton(QtWidgets.QMessageBox.No)
@@ -164,7 +164,6 @@ class UnitPurchaseDialog(QtWidgets.QDialog, Ui_unitPurchaseDialog):
               break
       
       if found_account_value:
-          print("date found")
           self.account_value.setEnabled(False)
           self.known_account_value = found_account_value
           self.account_value.setText('{0:.2f}'.format(found_account_value.value))
