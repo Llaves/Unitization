@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_window.ui'
+# Form implementation generated from reading ui file '.\main_window.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -210,3 +210,4 @@ class Ui_MainWindow(object):
         self.actionAdd_Account_Value.setText(_translate("MainWindow", "Add Account Value"))
         self.actionAdd_Account_Value.setShortcut(_translate("MainWindow", "Alt+V"))
         self.actionBackup_Now.setText(_translate("MainWindow", "Backup Now"))
+        self.actionBackup_Now.setShortcut(_translate("MainWindow", "Alt+B"))

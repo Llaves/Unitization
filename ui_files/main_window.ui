@@ -431,6 +431,9 @@
    <property name="text">
     <string>Backup Now</string>
    </property>
+   <property name="shortcut">
+    <string>Alt+B</string>
+   </property>
   </action>
  </widget>
  <resources/>
