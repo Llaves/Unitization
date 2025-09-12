@@ -111,7 +111,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Account Value on Purcahse Date </string>
+         <string>Account Value on Purchase Date </string>
         </property>
        </widget>
       </item>

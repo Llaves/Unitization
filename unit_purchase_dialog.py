@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'unit_purchase_dialog.ui'
+# Form implementation generated from reading ui file '.\unit_purchase_dialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -103,5 +103,5 @@ class Ui_unitPurchaseDialog(object):
         self.label.setText(_translate("unitPurchaseDialog", "Fund Name"))
         self.label_3.setText(_translate("unitPurchaseDialog", "Dollars invested"))
         self.label_2.setText(_translate("unitPurchaseDialog", "Purchase Date"))
-        self.label_4.setText(_translate("unitPurchaseDialog", "Account Value on Purcahse Date "))
+        self.label_4.setText(_translate("unitPurchaseDialog", "Account Value on Purchase Date "))
         self.delete_purchase.setText(_translate("unitPurchaseDialog", "Delete Purchase"))
