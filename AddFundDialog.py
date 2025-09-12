@@ -30,6 +30,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
         v.setBottom(0)
         v.setDecimals(3)
         self.initial_units.setText("0")
+        self.old_initial_units = 0
         v.setNotation(QtGui.QDoubleValidator.StandardNotation)
         self.initial_units.setValidator(v)
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(False)
@@ -45,7 +46,8 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
 
         if self.edit_mode:
             self.fund_name.setText(self.old_fund.name)
-            self.initial_units.setText(str(self.old_fund.initial_units))
+            self.old_initial_units = self.old_fund.initial_units
+            self.initial_units.setText(str(self.old_initial_units))
             self.setWindowTitle("Edit Fund")
             self.delete_fund.show()
 
@@ -92,7 +94,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
             msg_box.setDefaultButton(QMessageBox.Discard)
             msg_box.setWindowTitle("UnitTracker Warning")
             if msg_box.exec() == QMessageBox.Discard:
-                self.initial_units.setText("0")
+                self.initial_units.setText(str(self.old_initial_units))
                 return
 
         # check if the fund name already exists (final blocking check with popup)
