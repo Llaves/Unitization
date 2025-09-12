@@ -18,12 +18,13 @@ from copy import copy
 
 
 class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
-    def __init__(self, parent, edit_mode=False, old_fund=None):
+    def __init__(self, parent, edit_mode=False, old_fund=None, first_fund=False):
         QtWidgets.QDialog.__init__(self, parent)
         self.parent = parent
         self.setupUi(self)
         self.edit_mode = edit_mode
         self.old_fund = copy(old_fund)
+        self.first_fund = first_fund
 
         # set validator to doubles, three decimal places, greater than zero
         v = QtGui.QDoubleValidator()
@@ -42,7 +43,6 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
         self.buttonBox.accepted.disconnect(self.accept)
 
         self.duplicate_fund_warning.hide()
-
 
         if self.edit_mode:
             self.fund_name.setText(self.old_fund.name)
@@ -66,6 +66,14 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
         )
 
     def OKHandler(self):
+        # Check for first fund with zero initial units
+        if self.first_fund and float(self.initial_units.text()) == 0:
+            self.parent.showWarningDialog(
+                "First Fund Warning",
+                "The first fund added to the account must have initial units greater than zero."
+            )
+            return
+
         if (
             (
                 (not self.edit_mode)
@@ -111,7 +119,7 @@ class AddFundDialog(QtWidgets.QDialog, Ui_addFund):
     def fundNameExists(self, show_warning=True):
         new_name = self.fund_name.text()
 
-        # In edit mode, if the name hasn’t changed, allow it
+        # In edit mode, if the name hasn't changed, allow it
         if self.edit_mode and new_name == self.old_fund.name:
             return False
 

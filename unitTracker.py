@@ -200,8 +200,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
   def noInitialUnitsWarning(self):
     self.showWarningDialog(
         "UnitTracker Warning",
-        "You must have at least one fund with non-zero initial units in order "
-        "for entries to show in the purchases tab"
+        "The first fund you create must have initial units greater than zero"
     )
 
   def dangerousEditWarning(self):
@@ -304,7 +303,9 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def newFund(self):
-    dialog = AddFundDialog(self)
+    if len(self.active_account.funds) == 0:
+      first_fund = True
+    dialog = AddFundDialog(self, False, None, first_fund)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       new_fund = dialog.fund
       new_fund.insertIntoDB(self.con)
