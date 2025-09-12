@@ -303,8 +303,7 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
 
 
   def newFund(self):
-    if len(self.active_account.funds) == 0:
-      first_fund = True
+    first_fund = len(self.active_account.funds) == 0
     dialog = AddFundDialog(self, False, None, first_fund)
     if (dialog.exec() == QtWidgets.QDialog.Accepted):
       new_fund = dialog.fund
