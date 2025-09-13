@@ -1,6 +1,6 @@
 ## Protecting your data
 
-Every time you launch UnitTracker the `accounts.db` file is backed up to the `backup` folder. The file name has the format `accounts_yyyy_mm_dd_hh_mm.db`. At the time this was written the last launch of UnitTracker was on Sept 11, 2025 at 16:27 (4:37PM in 24 hour format). This created a backup with filename `accounts_2025_09_11_16_27.db`. (If you launch the demo account the backup will have a format of `demo_yyyy_mm_dd_hh_mm.db`.)
+The file `accounts.db` in the install directory is your current active database. Every time you launch UnitTracker the `accounts.db` file is backed up to the `backup` folder. The file name has the format `accounts_yyyy_mm_dd_hh_mm.db`. A backup created on Sept 11, 2025 at 16:27 (4:37PM in 24 hour format) has filename `accounts_2025_09_11_16_27.db`. (If you launch the demo account the backup will have a format of `demo_yyyy_mm_dd_hh_mm.db`.)
 
 Because there is no undo function, if you're adding a lot of entries in a session or doing a lot of edits, it is prudent to periodically backup your database so that you can restore to an ear &mdashr point if you discover you've made an error. (You can also correct errors using edits &mdash; see [Editing](editing.md).)
 
@@ -10,7 +10,7 @@ You can create a backup at any time by clicking the menu `Advanced-> Backup Now`
 
 ![Backup Now](img/backup_now.png)
 
-Over time the `backup` directory will accumulate a large number of files. Most of these files are worthless because restoring them would cause you to lose all the entries you've made since the backup was created. Feel free to delete old backup files to reduce clutter.
+Over time the `backup` directory will accumulate a large number of files. Most of these files are worthless because restoring them would cause you to lose all the entries you've made since the backup was created. You can delete old backup files to reduce clutter.
 
 There is nothing significant about the name of the backup file other than as a means to help you locate a file from a particular time and date. You can rename files that correspond to major events if that helps with your file organization. For example, you might label a backup `Fall 2025 Audit.db` to archive the database on the date of your audit. 
 
