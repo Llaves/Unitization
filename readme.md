@@ -7,6 +7,6 @@ UnitTracker is a Windows program designed to manage small endowments, typically 
 
 Documentation for UnitTracker can be found at [here](http://www.unittracker.org).
 
-UnitTracker is free and open source. It is licensed  under the GNU Affero General Public License v3.0 - see the [LICENSE](WebDocs/docs/agpl-3.0.txt) file for details.
+UnitTracker is free and open source. It is licensed  under the GNU Affero General Public License v3.0 - see the [LICENSE](WebDocs/docs/agpl-3.0.txt) file for details. All project files are subject to this license.
 
 The source code is available on [Github](https://github.com/Llaves/Unitization)
