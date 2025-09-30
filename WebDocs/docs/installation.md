@@ -1,5 +1,5 @@
 ## Installation:
-UnitTracker is provided as a .zip file. You can download it [here](http://www.unittracker.org/UnitTracker.zip). 
+UnitTracker is provided as a .zip file. You can download it [here](https://www.unittracker.org/UnitTracker.zip). 
 Once downloaded, you can install it anywhere you want on your system with the exception of the Program Files or Program Files (x86) directories which will cause permissions problems.
 
 Create a directory called UnitTracker anyplace on your system. Common choices would be `C:\UnitTracker` or `C:\users\\\<user name>\AppData\Roaming\UnitTracker`. These are just suggestions – feel free to install wherever you want, just remember where you put it. 
