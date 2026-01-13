@@ -6,7 +6,7 @@
 *.tmp
 *.pdf
 *.db
-
+*.spec
 
 
 ToDo.txt
