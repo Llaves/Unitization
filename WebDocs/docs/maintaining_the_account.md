@@ -27,7 +27,7 @@ You've now restored your accounts to the state they had at the moment the backup
 
 ## Selecting an account to work on
 
-When you launch UnitTracker, you will need to open the account you want to work on. For users managing multiple accounts, you may need to switch to a different account to manage. In both cases just `Click Accounts->Open Account`
+If you are managing only a single account, UnitTracker will launch with that acccount open. Otherwise you will need to open the account you want to work on. For users managing multiple accounts, you may need to switch to a different account to manage during a single session. In both cases just `Click Accounts->Open Account`
 
 ![Open Account](img/open_account.png)
 
