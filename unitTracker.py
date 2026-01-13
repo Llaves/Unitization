@@ -126,7 +126,12 @@ class UnitTracker(QtWidgets.QMainWindow, Ui_MainWindow):
     
     # fetch the accounts from the database
     self.accounts = fetchAccounts(self.con)
-    self.active_account = None
+    
+    # Auto-open account if there's exactly one
+    if len(self.accounts) == 1:
+      self.setActiveAccount(self.accounts[0])
+    else:
+      self.active_account = None
 
 
     # UI Controls
