@@ -1,0 +1,277 @@
+Public Sub CreateDatabaseSchema()
+    Dim db As DAO.Database
+    Dim tdf As DAO.TableDef
+    Dim rel As DAO.Relation
+    Dim idx As DAO.Index
+    Dim fldIdx As DAO.Field
+    Dim fldID As DAO.Field
+
+    Set db = CurrentDb
+
+    ' =====================================================
+    ' STEP 1: Drop all existing relationships
+    ' =====================================================
+    On Error Resume Next
+    For Each rel In db.Relations
+        db.Relations.Delete rel.Name
+    Next rel
+    On Error GoTo 0
+
+    ' =====================================================
+    ' STEP 2: Forcefully drop tables using multiple methods
+    ' =====================================================
+    DoCmd.SetWarnings False
+
+    ' Method 1: Try SQL DROP
+    On Error Resume Next
+    DoCmd.RunSQL "DROP TABLE UnitPurchase"
+    DoCmd.RunSQL "DROP TABLE AccountValue"
+    DoCmd.RunSQL "DROP TABLE Funds"
+    DoCmd.RunSQL "DROP TABLE AccountInfo"
+    On Error GoTo 0
+
+    ' Method 2: Try DAO Delete (more reliable)
+    On Error Resume Next
+    For Each tdf In db.TableDefs
+        Select Case tdf.Name
+            Case "UnitPurchase", "AccountValue", "Funds", "AccountInfo"
+                db.TableDefs.Delete tdf.Name
+        End Select
+    Next tdf
+    On Error GoTo 0
+
+    db.TableDefs.Refresh
+    DoCmd.SetWarnings True
+
+    ' Verify tables are gone
+    Dim tblExists As Boolean
+    tblExists = False
+    On Error Resume Next
+    Set tdf = db.TableDefs("AccountInfo")
+    If Err.Number = 0 Then tblExists = True
+    Set tdf = Nothing
+    On Error GoTo 0
+
+    If tblExists Then
+        MsgBox "Unable to delete existing tables. Please close and reopen the database, then run this again.", vbCritical
+        Exit Sub
+    End If
+
+    ' =====================================================
+    ' STEP 3: Create AccountInfo
+    ' =====================================================
+    Set tdf = db.CreateTableDef("AccountInfo")
+    With tdf
+        Set fldID = .CreateField("ID", dbLong)
+        fldID.Attributes = dbAutoIncrField
+        .Fields.Append fldID
+        .Fields.Append .CreateField("Name", dbText, 100)
+        .Fields("Name").Required = True
+        .Fields.Append .CreateField("Brokerage", dbText, 100)
+        .Fields("Brokerage").Required = True
+        .Fields.Append .CreateField("AccountNo", dbText, 50)
+        .Fields("AccountNo").Required = True
+    End With
+    db.TableDefs.Append tdf
+
+    On Error Resume Next
+    Set idx = db.TableDefs("AccountInfo").CreateIndex("PrimaryKey")
+    idx.Primary = True
+    idx.Unique = True
+    Set fldIdx = idx.CreateField("ID")
+    idx.Fields.Append fldIdx
+    db.TableDefs("AccountInfo").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "AccountInfo PK failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    ' =====================================================
+    ' STEP 4: Create Funds
+    ' =====================================================
+    Set tdf = db.CreateTableDef("Funds")
+    With tdf
+        Set fldID = .CreateField("ID", dbLong)
+        fldID.Attributes = dbAutoIncrField
+        .Fields.Append fldID
+        .Fields.Append .CreateField("Name", dbText, 100)
+        .Fields("Name").Required = True
+        .Fields.Append .CreateField("InitialUnits", dbDouble)
+        .Fields("InitialUnits").Required = True
+    End With
+    db.TableDefs.Append tdf
+
+    On Error Resume Next
+    Set idx = db.TableDefs("Funds").CreateIndex("PrimaryKey")
+    idx.Primary = True
+    idx.Unique = True
+    Set fldIdx = idx.CreateField("ID")
+    idx.Fields.Append fldIdx
+    db.TableDefs("Funds").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "Funds PK failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    On Error Resume Next
+    Set idx = db.TableDefs("Funds").CreateIndex("idx_Funds_Name")
+    idx.Unique = True
+    Set fldIdx = idx.CreateField("Name")
+    idx.Fields.Append fldIdx
+    db.TableDefs("Funds").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "Funds Name index failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    ' =====================================================
+    ' STEP 5: Create AccountValue
+    ' =====================================================
+    Set tdf = db.CreateTableDef("AccountValue")
+    With tdf
+        Set fldID = .CreateField("ID", dbLong)
+        fldID.Attributes = dbAutoIncrField
+        .Fields.Append fldID
+        .Fields.Append .CreateField("ValueDate", dbDate)
+        .Fields("ValueDate").Required = True
+        .Fields.Append .CreateField("TodaysValue", dbCurrency)
+        .Fields("TodaysValue").Required = True
+        .Fields.Append .CreateField("UnitPrice", dbDouble)
+    End With
+    db.TableDefs.Append tdf
+
+    On Error Resume Next
+    Set idx = db.TableDefs("AccountValue").CreateIndex("PrimaryKey")
+    idx.Primary = True
+    idx.Unique = True
+    Set fldIdx = idx.CreateField("ID")
+    idx.Fields.Append fldIdx
+    db.TableDefs("AccountValue").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "AccountValue PK failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    On Error Resume Next
+    Set idx = db.TableDefs("AccountValue").CreateIndex("idx_AccountValue_Date")
+    idx.Unique = True
+    Set fldIdx = idx.CreateField("ValueDate")
+    idx.Fields.Append fldIdx
+    db.TableDefs("AccountValue").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "AccountValue Date index failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    ' =====================================================
+    ' STEP 6: Create UnitPurchase
+    ' =====================================================
+    Set tdf = db.CreateTableDef("UnitPurchase")
+    With tdf
+        Set fldID = .CreateField("ID", dbLong)
+        fldID.Attributes = dbAutoIncrField
+        .Fields.Append fldID
+        .Fields.Append .CreateField("FundID", dbLong)
+        .Fields("FundID").Required = True
+        .Fields.Append .CreateField("Amount", dbCurrency)
+        .Fields("Amount").Required = True
+        .Fields.Append .CreateField("DateID", dbLong)
+        .Fields("DateID").Required = True
+        .Fields.Append .CreateField("UnitsPurchased", dbDouble)
+    End With
+    db.TableDefs.Append tdf
+
+    On Error Resume Next
+    Set idx = db.TableDefs("UnitPurchase").CreateIndex("PrimaryKey")
+    idx.Primary = True
+    idx.Unique = True
+    Set fldIdx = idx.CreateField("ID")
+    idx.Fields.Append fldIdx
+    db.TableDefs("UnitPurchase").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "UnitPurchase PK failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    On Error Resume Next
+    Set idx = db.TableDefs("UnitPurchase").CreateIndex("idx_UP_FundID")
+    Set fldIdx = idx.CreateField("FundID")
+    idx.Fields.Append fldIdx
+    db.TableDefs("UnitPurchase").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "UnitPurchase FundID index failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    On Error Resume Next
+    Set idx = db.TableDefs("UnitPurchase").CreateIndex("idx_UP_DateID")
+    Set fldIdx = idx.CreateField("DateID")
+    idx.Fields.Append fldIdx
+    db.TableDefs("UnitPurchase").Indexes.Append idx
+    If Err.Number <> 0 Then MsgBox "UnitPurchase DateID index failed: " & Err.Number & " - " & Err.description
+    On Error GoTo 0
+
+    ' =====================================================
+    ' STEP 7: Add foreign key relationships with cascade delete
+    ' =====================================================
+    Dim fldRel As DAO.Field
+    Dim relMsg As String
+    relMsg = ""
+
+    On Error Resume Next
+    Err.Clear
+    Set rel = db.CreateRelation("FK_UnitPurchase_Funds")
+    rel.Table = "Funds"
+    rel.ForeignTable = "UnitPurchase"
+    Set fldRel = rel.CreateField("ID")
+    fldRel.ForeignName = "FundID"
+    rel.Fields.Append fldRel
+    rel.Attributes = dbRelationDeleteCascade
+    db.Relations.Append rel
+    If Err.Number <> 0 Then
+        relMsg = relMsg & "FK_UnitPurchase_Funds FAILED: " & Err.Number & " - " & Err.description & vbCrLf
+        Err.Clear
+    End If
+
+    Set rel = db.CreateRelation("FK_UnitPurchase_AccountValue")
+    rel.Table = "AccountValue"
+    rel.ForeignTable = "UnitPurchase"
+    Set fldRel = rel.CreateField("ID")
+    fldRel.ForeignName = "DateID"
+    rel.Fields.Append fldRel
+    rel.Attributes = dbRelationDeleteCascade
+    db.Relations.Append rel
+    If Err.Number <> 0 Then
+        relMsg = relMsg & "FK_UnitPurchase_AccountValue FAILED: " & Err.Number & " - " & Err.description & vbCrLf
+        Err.Clear
+    End If
+    On Error GoTo 0
+
+    If relMsg <> "" Then
+        MsgBox "Relationship errors:" & vbCrLf & relMsg, vbExclamation, "Step 7 Failed"
+        Exit Sub
+    End If
+
+    ' =====================================================
+    ' STEP 8: Final cleanup
+    ' =====================================================
+    Set tdf = Nothing
+    Set rel = Nothing
+    Set db = Nothing
+
+    MsgBox "All tables, indexes, and relationships created successfully!", vbInformation, "UnitTracker Setup"
+End Sub
+
+
+
+
+
+
+Public Sub DiagnoseFieldTypes()
+    Dim db As DAO.Database
+    Set db = CurrentDb
+    
+    Debug.Print "--- Funds.ID ---"
+    Debug.Print "Type: " & db.TableDefs("Funds").Fields("ID").Type
+    Debug.Print "Attributes: " & db.TableDefs("Funds").Fields("ID").Attributes
+    
+    Debug.Print "--- UnitPurchase.FundID ---"
+    Debug.Print "Type: " & db.TableDefs("UnitPurchase").Fields("FundID").Type
+    Debug.Print "Attributes: " & db.TableDefs("UnitPurchase").Fields("FundID").Attributes
+    
+    Debug.Print "--- AccountValue.ID ---"
+    Debug.Print "Type: " & db.TableDefs("AccountValue").Fields("ID").Type
+    Debug.Print "Attributes: " & db.TableDefs("AccountValue").Fields("ID").Attributes
+    
+    Debug.Print "--- UnitPurchase.DateID ---"
+    Debug.Print "Type: " & db.TableDefs("UnitPurchase").Fields("DateID").Type
+    Debug.Print "Attributes: " & db.TableDefs("UnitPurchase").Fields("DateID").Attributes
+End Sub
+
+

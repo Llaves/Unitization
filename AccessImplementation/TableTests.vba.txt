@@ -1,0 +1,721 @@
+' modTestTables - Tests existing database schema
+
+Public Sub TestAllTables()
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+
+    Set db = CurrentDb
+
+    Debug.Print "========================"
+    Debug.Print "UnitTracker Schema Tests"
+    Debug.Print "========================"
+    Debug.Print ""
+
+    ' First verify all tables exist
+    Debug.Print "VERIFYING TABLES EXIST"
+    Debug.Print "----------------------"
+
+    Dim tablesExist As Boolean
+    tablesExist = True
+
+    On Error Resume Next
+    Set rs = db.OpenRecordset("SELECT TOP 1 * FROM AccountInfo")
+    If Err.Number <> 0 Then
+        Debug.Print "x MISSING: AccountInfo table"
+        tablesExist = False
+    Else
+        Debug.Print "v EXISTS: AccountInfo"
+        rs.Close
+    End If
+    Err.Clear
+
+    Set rs = db.OpenRecordset("SELECT TOP 1 * FROM Funds")
+    If Err.Number <> 0 Then
+        Debug.Print "x MISSING: Funds table"
+        tablesExist = False
+    Else
+        Debug.Print "v EXISTS: Funds"
+        rs.Close
+    End If
+    Err.Clear
+
+    Set rs = db.OpenRecordset("SELECT TOP 1 * FROM AccountValue")
+    If Err.Number <> 0 Then
+        Debug.Print "x MISSING: AccountValue table"
+        tablesExist = False
+    Else
+        Debug.Print "v EXISTS: AccountValue"
+        rs.Close
+    End If
+    Err.Clear
+
+    Set rs = db.OpenRecordset("SELECT TOP 1 * FROM UnitPurchase")
+    If Err.Number <> 0 Then
+        Debug.Print "x MISSING: UnitPurchase table"
+        tablesExist = False
+    Else
+        Debug.Print "v EXISTS: UnitPurchase"
+        rs.Close
+    End If
+    On Error GoTo 0
+
+    If Not tablesExist Then
+        Debug.Print ""
+        Debug.Print "xxx TEST ABORTED: Missing required tables xxx"
+        Exit Sub
+    End If
+
+    ' Run individual tests
+    Debug.Print ""
+    Debug.Print "TESTING TABLE STRUCTURES"
+    Debug.Print "------------------------"
+    TestAccountInfoStructure db
+    TestFundsStructure db
+    TestAccountValueStructure db
+    TestUnitPurchaseStructure db
+
+    Debug.Print ""
+    Debug.Print "TESTING FIELD TYPES"
+    Debug.Print "-------------------"
+    TestFieldTypes db
+
+    Debug.Print ""
+    Debug.Print "TESTING RELATIONSHIPS"
+    Debug.Print "---------------------"
+    TestRelationships db
+
+    Debug.Print ""
+    Debug.Print "TESTING DATA OPERATIONS"
+    Debug.Print "-----------------------"
+    TestInsertAndDelete db
+
+    Debug.Print ""
+    Debug.Print "TESTING REQUIRED CONSTRAINTS"
+    Debug.Print "----------------------------"
+    TestRequiredConstraints db
+
+    Debug.Print ""
+    Debug.Print "TESTING UNIQUE CONSTRAINTS"
+    Debug.Print "--------------------------"
+    TestUniqueConstraints db
+
+    Debug.Print ""
+    Debug.Print "TESTING FOREIGN KEY ENFORCEMENT"
+    Debug.Print "--------------------------------"
+    TestForeignKeys db
+
+    Debug.Print ""
+    Debug.Print "TESTING CASCADE DELETES"
+    Debug.Print "-----------------------"
+    TestCascadeDeletes db
+
+    Debug.Print ""
+    Debug.Print "========================"
+    Debug.Print "All tests completed!"
+    Debug.Print "========================"
+End Sub
+
+' =====================================================
+' STRUCTURE TESTS
+' =====================================================
+
+Private Sub TestAccountInfoStructure(db As DAO.Database)
+    Dim tdf As DAO.TableDef
+    Dim fld As DAO.Field
+    Dim idx As DAO.Index
+
+    Set tdf = db.TableDefs("AccountInfo")
+
+    Dim hasID As Boolean: hasID = False
+    Dim hasName As Boolean: hasName = False
+    Dim hasBrokerage As Boolean: hasBrokerage = False
+    Dim hasAccountNo As Boolean: hasAccountNo = False
+
+    For Each fld In tdf.Fields
+        Select Case fld.Name
+            Case "ID": hasID = True
+            Case "Name": hasName = True
+            Case "Brokerage": hasBrokerage = True
+            Case "AccountNo": hasAccountNo = True
+        End Select
+    Next fld
+
+    If hasID And hasName And hasBrokerage And hasAccountNo Then
+        Debug.Print "v PASS: AccountInfo has all required fields"
+    Else
+        Debug.Print "x FAIL: AccountInfo missing fields - ID:" & hasID & " Name:" & hasName & " Brokerage:" & hasBrokerage & " AccountNo:" & hasAccountNo
+    End If
+
+    Dim hasPK As Boolean: hasPK = False
+    For Each idx In tdf.Indexes
+        If idx.Primary Then hasPK = True: Exit For
+    Next idx
+    If hasPK Then
+        Debug.Print "v PASS: AccountInfo has primary key"
+    Else
+        Debug.Print "x FAIL: AccountInfo missing primary key"
+    End If
+End Sub
+
+Private Sub TestFundsStructure(db As DAO.Database)
+    Dim tdf As DAO.TableDef
+    Dim fld As DAO.Field
+    Dim idx As DAO.Index
+
+    Set tdf = db.TableDefs("Funds")
+
+    Dim hasID As Boolean: hasID = False
+    Dim hasName As Boolean: hasName = False
+    Dim hasInitialUnits As Boolean: hasInitialUnits = False
+
+    For Each fld In tdf.Fields
+        Select Case fld.Name
+            Case "ID": hasID = True
+            Case "Name": hasName = True
+            Case "InitialUnits": hasInitialUnits = True
+        End Select
+    Next fld
+
+    If hasID And hasName And hasInitialUnits Then
+        Debug.Print "v PASS: Funds has all required fields"
+    Else
+        Debug.Print "x FAIL: Funds missing fields - ID:" & hasID & " Name:" & hasName & " InitialUnits:" & hasInitialUnits
+    End If
+
+    Dim hasPK As Boolean: hasPK = False
+    For Each idx In tdf.Indexes
+        If idx.Primary Then hasPK = True: Exit For
+    Next idx
+    If hasPK Then
+        Debug.Print "v PASS: Funds has primary key"
+    Else
+        Debug.Print "x FAIL: Funds missing primary key"
+    End If
+
+    Dim hasUniqueName As Boolean: hasUniqueName = False
+    For Each idx In tdf.Indexes
+        If idx.Fields(0).Name = "Name" And idx.Unique Then
+            hasUniqueName = True: Exit For
+        End If
+    Next idx
+    If hasUniqueName Then
+        Debug.Print "v PASS: Funds has unique index on Name"
+    Else
+        Debug.Print "x FAIL: Funds missing unique index on Name"
+    End If
+End Sub
+
+Private Sub TestAccountValueStructure(db As DAO.Database)
+    Dim tdf As DAO.TableDef
+    Dim fld As DAO.Field
+    Dim idx As DAO.Index
+
+    Set tdf = db.TableDefs("AccountValue")
+
+    Dim hasID As Boolean: hasID = False
+    Dim hasValueDate As Boolean: hasValueDate = False
+    Dim hasTodaysValue As Boolean: hasTodaysValue = False
+    Dim hasUnitPrice As Boolean: hasUnitPrice = False
+
+    For Each fld In tdf.Fields
+        Select Case fld.Name
+            Case "ID": hasID = True
+            Case "ValueDate": hasValueDate = True
+            Case "TodaysValue": hasTodaysValue = True
+            Case "UnitPrice": hasUnitPrice = True
+        End Select
+    Next fld
+
+    If hasID And hasValueDate And hasTodaysValue And hasUnitPrice Then
+        Debug.Print "v PASS: AccountValue has all required fields"
+    Else
+        Debug.Print "x FAIL: AccountValue missing fields - ID:" & hasID & " ValueDate:" & hasValueDate & " TodaysValue:" & hasTodaysValue & " UnitPrice:" & hasUnitPrice
+    End If
+
+    Dim hasPK As Boolean: hasPK = False
+    For Each idx In tdf.Indexes
+        If idx.Primary Then hasPK = True: Exit For
+    Next idx
+    If hasPK Then
+        Debug.Print "v PASS: AccountValue has primary key"
+    Else
+        Debug.Print "x FAIL: AccountValue missing primary key"
+    End If
+
+    Dim hasUniqueDate As Boolean: hasUniqueDate = False
+    For Each idx In tdf.Indexes
+        If idx.Fields(0).Name = "ValueDate" And idx.Unique Then
+            hasUniqueDate = True: Exit For
+        End If
+    Next idx
+    If hasUniqueDate Then
+        Debug.Print "v PASS: AccountValue has unique index on ValueDate"
+    Else
+        Debug.Print "x FAIL: AccountValue missing unique index on ValueDate"
+    End If
+End Sub
+
+Private Sub TestUnitPurchaseStructure(db As DAO.Database)
+    Dim tdf As DAO.TableDef
+    Dim fld As DAO.Field
+    Dim idx As DAO.Index
+
+    Set tdf = db.TableDefs("UnitPurchase")
+
+    Dim hasID As Boolean: hasID = False
+    Dim hasFundID As Boolean: hasFundID = False
+    Dim hasAmount As Boolean: hasAmount = False
+    Dim hasDateID As Boolean: hasDateID = False
+    Dim hasUnitsPurchased As Boolean: hasUnitsPurchased = False
+
+    For Each fld In tdf.Fields
+        Select Case fld.Name
+            Case "ID": hasID = True
+            Case "FundID": hasFundID = True
+            Case "Amount": hasAmount = True
+            Case "DateID": hasDateID = True
+            Case "UnitsPurchased": hasUnitsPurchased = True
+        End Select
+    Next fld
+
+    If hasID And hasFundID And hasAmount And hasDateID And hasUnitsPurchased Then
+        Debug.Print "v PASS: UnitPurchase has all required fields"
+    Else
+        Debug.Print "x FAIL: UnitPurchase missing fields - ID:" & hasID & " FundID:" & hasFundID & " Amount:" & hasAmount & " DateID:" & hasDateID & " UnitsPurchased:" & hasUnitsPurchased
+    End If
+
+    Dim hasPK As Boolean: hasPK = False
+    For Each idx In tdf.Indexes
+        If idx.Primary Then hasPK = True: Exit For
+    Next idx
+    If hasPK Then
+        Debug.Print "v PASS: UnitPurchase has primary key"
+    Else
+        Debug.Print "x FAIL: UnitPurchase missing primary key"
+    End If
+
+    ' Check FK support indexes
+    Dim hasFundIDIdx As Boolean: hasFundIDIdx = False
+    Dim hasDateIDIdx As Boolean: hasDateIDIdx = False
+    For Each idx In tdf.Indexes
+        If idx.Fields(0).Name = "FundID" Then hasFundIDIdx = True
+        If idx.Fields(0).Name = "DateID" Then hasDateIDIdx = True
+    Next idx
+    If hasFundIDIdx Then
+        Debug.Print "v PASS: UnitPurchase has index on FundID"
+    Else
+        Debug.Print "x FAIL: UnitPurchase missing index on FundID"
+    End If
+    If hasDateIDIdx Then
+        Debug.Print "v PASS: UnitPurchase has index on DateID"
+    Else
+        Debug.Print "x FAIL: UnitPurchase missing index on DateID"
+    End If
+End Sub
+
+' =====================================================
+' FIELD TYPE TESTS
+' =====================================================
+
+Private Sub TestFieldTypes(db As DAO.Database)
+    ' Funds
+    CheckFieldType db, "Funds", "ID", dbLong, "AutoNumber (dbLong)"
+    CheckFieldType db, "Funds", "Name", dbText, "Text"
+    CheckFieldType db, "Funds", "InitialUnits", dbDouble, "Double"
+
+    ' AccountInfo
+    CheckFieldType db, "AccountInfo", "ID", dbLong, "AutoNumber (dbLong)"
+    CheckFieldType db, "AccountInfo", "Name", dbText, "Text"
+    CheckFieldType db, "AccountInfo", "Brokerage", dbText, "Text"
+    CheckFieldType db, "AccountInfo", "AccountNo", dbText, "Text"
+
+    ' AccountValue
+    CheckFieldType db, "AccountValue", "ID", dbLong, "AutoNumber (dbLong)"
+    CheckFieldType db, "AccountValue", "ValueDate", dbDate, "Date"
+    CheckFieldType db, "AccountValue", "TodaysValue", dbCurrency, "Currency"
+    CheckFieldType db, "AccountValue", "UnitPrice", dbDouble, "Double"
+
+    ' UnitPurchase
+    CheckFieldType db, "UnitPurchase", "ID", dbLong, "AutoNumber (dbLong)"
+    CheckFieldType db, "UnitPurchase", "FundID", dbLong, "Long"
+    CheckFieldType db, "UnitPurchase", "Amount", dbCurrency, "Currency"
+    CheckFieldType db, "UnitPurchase", "DateID", dbLong, "Long"
+    CheckFieldType db, "UnitPurchase", "UnitsPurchased", dbDouble, "Double"
+End Sub
+
+Private Sub CheckFieldType(db As DAO.Database, tableName As String, fieldName As String, expectedType As Integer, typeName As String)
+    Dim actualType As Integer
+    actualType = db.TableDefs(tableName).Fields(fieldName).Type
+    If actualType = expectedType Then
+        Debug.Print "v PASS: " & tableName & "." & fieldName & " is " & typeName
+    Else
+        Debug.Print "x FAIL: " & tableName & "." & fieldName & " expected " & typeName & " (" & expectedType & ") got " & actualType
+    End If
+End Sub
+
+' =====================================================
+' RELATIONSHIP TESTS
+' =====================================================
+
+Private Sub TestRelationships(db As DAO.Database)
+    Dim rel As DAO.Relation
+    Dim hasFundsRelation As Boolean: hasFundsRelation = False
+    Dim hasAccountValueRelation As Boolean: hasAccountValueRelation = False
+
+    For Each rel In db.Relations
+        Err.Clear
+        On Error Resume Next
+        Dim tbl As String: tbl = rel.Table
+        Dim ftbl As String: ftbl = rel.ForeignTable
+        Dim attr As Long: attr = rel.Attributes
+        On Error GoTo 0
+        If Err.Number <> 0 Then GoTo NextRel
+
+        If tbl = "Funds" And ftbl = "UnitPurchase" Then
+            hasFundsRelation = True
+            If attr And dbRelationDeleteCascade Then
+                Debug.Print "v PASS: Funds -> UnitPurchase with Cascade Delete"
+            Else
+                Debug.Print "x FAIL: Funds -> UnitPurchase exists but missing Cascade Delete"
+            End If
+        End If
+
+        If tbl = "AccountValue" And ftbl = "UnitPurchase" Then
+            hasAccountValueRelation = True
+            If attr And dbRelationDeleteCascade Then
+                Debug.Print "v PASS: AccountValue -> UnitPurchase with Cascade Delete"
+            Else
+                Debug.Print "x FAIL: AccountValue -> UnitPurchase exists but missing Cascade Delete"
+            End If
+        End If
+NextRel:
+    Next rel
+
+    If Not hasFundsRelation Then
+        Debug.Print "x FAIL: Missing relationship between Funds and UnitPurchase"
+    End If
+    If Not hasAccountValueRelation Then
+        Debug.Print "x FAIL: Missing relationship between AccountValue and UnitPurchase"
+    End If
+End Sub
+
+' =====================================================
+' BASIC INSERT / UPDATE TESTS
+' =====================================================
+
+Private Sub TestInsertAndDelete(db As DAO.Database)
+    CleanupTestData db
+
+    ' AccountInfo insert
+    On Error Resume Next
+    Err.Clear
+    db.Execute "INSERT INTO AccountInfo (Name, Brokerage, AccountNo) VALUES ('Test Endowment', 'Test Broker', 'TEST123')", dbFailOnError
+    If Err.Number = 0 Then
+        Debug.Print "v PASS: Can insert into AccountInfo"
+    Else
+        Debug.Print "x FAIL: Cannot insert into AccountInfo - " & Err.Description
+    End If
+    On Error GoTo 0
+
+    ' Funds insert
+    On Error Resume Next
+    Err.Clear
+    db.Execute "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 1000)", dbFailOnError
+    If Err.Number = 0 Then
+        Debug.Print "v PASS: Can insert into Funds"
+    Else
+        Debug.Print "x FAIL: Cannot insert into Funds - " & Err.Description
+    End If
+    On Error GoTo 0
+
+    ' AccountValue insert
+    On Error Resume Next
+    Err.Clear
+    db.Execute "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#1/1/2025#, 100000)", dbFailOnError
+    If Err.Number = 0 Then
+        Debug.Print "v PASS: Can insert into AccountValue"
+    Else
+        Debug.Print "x FAIL: Cannot insert into AccountValue - " & Err.Description
+    End If
+    On Error GoTo 0
+
+    ' UnitPrice nullable (VBA writes it after the fact)
+    On Error Resume Next
+    Err.Clear
+    db.Execute "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#2/1/2025#, 200000)", dbFailOnError
+    If Err.Number = 0 Then
+        Debug.Print "v PASS: AccountValue.UnitPrice accepts NULL on insert"
+    Else
+        Debug.Print "x FAIL: AccountValue insert without UnitPrice failed - " & Err.Description
+    End If
+    On Error GoTo 0
+
+    ' UnitPurchase insert
+    Dim fundID As Variant
+    Dim dateID As Variant
+    fundID = DLookup("ID", "Funds", "Name='TEST_Fund'")
+    dateID = DLookup("ID", "AccountValue", "ValueDate=#1/1/2025#")
+
+    If IsNull(fundID) Or IsNull(dateID) Then
+        Debug.Print "! SKIP: Cannot test UnitPurchase insert - missing test IDs"
+    Else
+        On Error Resume Next
+        Err.Clear
+        db.Execute "INSERT INTO UnitPurchase (FundID, Amount, DateID) VALUES (" & fundID & ", 5000, " & dateID & ")", dbFailOnError
+        If Err.Number = 0 Then
+            Debug.Print "v PASS: Can insert into UnitPurchase"
+        Else
+            Debug.Print "x FAIL: Cannot insert into UnitPurchase - " & Err.Description
+        End If
+        On Error GoTo 0
+
+        ' UnitsPurchased nullable and updatable
+        On Error Resume Next
+        Err.Clear
+        db.Execute "UPDATE UnitPurchase SET UnitsPurchased = 123.456 WHERE FundID=" & fundID, dbFailOnError
+        If Err.Number = 0 Then
+            Debug.Print "v PASS: Can update UnitsPurchased"
+        Else
+            Debug.Print "x FAIL: Cannot update UnitsPurchased - " & Err.Description
+        End If
+        On Error GoTo 0
+    End If
+
+    CleanupTestData db
+    Debug.Print "v PASS: Cleanup completed"
+End Sub
+
+' =====================================================
+' REQUIRED CONSTRAINT TESTS
+' =====================================================
+
+Private Sub TestRequiredConstraints(db As DAO.Database)
+    CleanupTestData db
+
+    ' AccountInfo.Name required
+    AssertInsertFails db, "INSERT INTO AccountInfo (Brokerage, AccountNo) VALUES ('Broker', 'ACC1')", _
+        "AccountInfo.Name is required"
+
+    ' AccountInfo.Brokerage required
+    AssertInsertFails db, "INSERT INTO AccountInfo (Name, AccountNo) VALUES ('Test', 'ACC1')", _
+        "AccountInfo.Brokerage is required"
+
+    ' AccountInfo.AccountNo required
+    AssertInsertFails db, "INSERT INTO AccountInfo (Name, Brokerage) VALUES ('Test', 'Broker')", _
+        "AccountInfo.AccountNo is required"
+
+    ' Funds.Name required
+    AssertInsertFails db, "INSERT INTO Funds (InitialUnits) VALUES (100)", _
+        "Funds.Name is required"
+
+    ' Funds.InitialUnits required
+    AssertInsertFails db, "INSERT INTO Funds (Name) VALUES ('NullUnits_Fund')", _
+        "Funds.InitialUnits is required"
+
+    ' AccountValue.ValueDate required
+    AssertInsertFails db, "INSERT INTO AccountValue (TodaysValue) VALUES (50000)", _
+        "AccountValue.ValueDate is required"
+
+    ' AccountValue.TodaysValue required
+    AssertInsertFails db, "INSERT INTO AccountValue (ValueDate) VALUES (#3/1/2025#)", _
+        "AccountValue.TodaysValue is required"
+
+    ' UnitPurchase.FundID required — need valid dateID first
+    db.Execute "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#1/1/2025#, 100000)", dbFailOnError
+    Dim dateID As Variant
+    dateID = DLookup("ID", "AccountValue", "ValueDate=#1/1/2025#")
+    If Not IsNull(dateID) Then
+        AssertInsertFails db, "INSERT INTO UnitPurchase (Amount, DateID) VALUES (5000, " & dateID & ")", _
+            "UnitPurchase.FundID is required"
+    End If
+
+    ' UnitPurchase.Amount required — need valid fundID too
+    db.Execute "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 1000)", dbFailOnError
+    Dim fundID As Variant
+    fundID = DLookup("ID", "Funds", "Name='TEST_Fund'")
+    If Not IsNull(fundID) And Not IsNull(dateID) Then
+        AssertInsertFails db, "INSERT INTO UnitPurchase (FundID, DateID) VALUES (" & fundID & ", " & dateID & ")", _
+            "UnitPurchase.Amount is required"
+    End If
+
+    ' UnitPurchase.DateID required
+    If Not IsNull(fundID) Then
+        AssertInsertFails db, "INSERT INTO UnitPurchase (FundID, Amount) VALUES (" & fundID & ", 5000)", _
+            "UnitPurchase.DateID is required"
+    End If
+
+    CleanupTestData db
+End Sub
+
+' =====================================================
+' UNIQUE CONSTRAINT TESTS
+' =====================================================
+
+Private Sub TestUniqueConstraints(db As DAO.Database)
+    CleanupTestData db
+
+    ' Set up base data
+    db.Execute "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 1000)", dbFailOnError
+    db.Execute "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#1/1/2025#, 100000)", dbFailOnError
+
+    ' Duplicate fund name
+    AssertInsertFails db, "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 500)", _
+        "Duplicate fund name rejected"
+
+    ' Duplicate AccountValue date
+    AssertInsertFails db, "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#1/1/2025#, 999)", _
+        "Duplicate AccountValue date rejected"
+
+    CleanupTestData db
+End Sub
+
+' =====================================================
+' FOREIGN KEY ENFORCEMENT TESTS
+' =====================================================
+
+Private Sub TestForeignKeys(db As DAO.Database)
+    CleanupTestData db
+
+    ' Insert with non-existent FundID
+    AssertInsertFails db, "INSERT INTO UnitPurchase (FundID, Amount, DateID) VALUES (99999, 5000, 99999)", _
+        "UnitPurchase rejects non-existent FundID"
+
+    ' Insert with valid FundID but non-existent DateID
+    db.Execute "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 1000)", dbFailOnError
+    Dim fundID As Variant
+    fundID = DLookup("ID", "Funds", "Name='TEST_Fund'")
+    If Not IsNull(fundID) Then
+        AssertInsertFails db, "INSERT INTO UnitPurchase (FundID, Amount, DateID) VALUES (" & fundID & ", 5000, 99999)", _
+            "UnitPurchase rejects non-existent DateID"
+    End If
+
+    CleanupTestData db
+End Sub
+
+' =====================================================
+' CASCADE DELETE TESTS
+' =====================================================
+
+Private Sub TestCascadeDeletes(db As DAO.Database)
+    CleanupTestData db
+
+    ' Set up: one fund, two dates, one purchase on each date
+    db.Execute "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 1000)", dbFailOnError
+    db.Execute "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#1/1/2025#, 100000)", dbFailOnError
+    db.Execute "INSERT INTO AccountValue (ValueDate, TodaysValue) VALUES (#2/1/2025#, 200000)", dbFailOnError
+
+    Dim fundID As Variant
+    Dim dateID1 As Variant
+    Dim dateID2 As Variant
+    fundID = DLookup("ID", "Funds", "Name='TEST_Fund'")
+    dateID1 = DLookup("ID", "AccountValue", "ValueDate=#1/1/2025#")
+    dateID2 = DLookup("ID", "AccountValue", "ValueDate=#2/1/2025#")
+
+    If IsNull(fundID) Or IsNull(dateID1) Or IsNull(dateID2) Then
+        Debug.Print "! SKIP: Cascade delete tests - could not create test data"
+        CleanupTestData db
+        Exit Sub
+    End If
+
+    db.Execute "INSERT INTO UnitPurchase (FundID, Amount, DateID) VALUES (" & fundID & ", 5000, " & dateID1 & ")", dbFailOnError
+    db.Execute "INSERT INTO UnitPurchase (FundID, Amount, DateID) VALUES (" & fundID & ", 3000, " & dateID2 & ")", dbFailOnError
+
+    ' Test 1: Delete fund cascades to its purchases
+    Dim countBefore As Long
+    countBefore = DCount("*", "UnitPurchase", "FundID=" & fundID)
+
+    On Error Resume Next
+    Err.Clear
+    db.Execute "DELETE FROM Funds WHERE ID=" & fundID, dbFailOnError
+    On Error GoTo 0
+
+    Dim countAfter As Long
+    countAfter = DCount("*", "UnitPurchase", "FundID=" & fundID)
+    If countBefore > 0 And countAfter = 0 Then
+        Debug.Print "v PASS: Deleting Funds row cascades to UnitPurchase"
+    Else
+        Debug.Print "x FAIL: Deleting Funds row did not remove UnitPurchase rows (before=" & countBefore & " after=" & countAfter & ")"
+    End If
+
+    ' Recreate data for second cascade test
+    db.Execute "INSERT INTO Funds (Name, InitialUnits) VALUES ('TEST_Fund', 1000)", dbFailOnError
+    fundID = DLookup("ID", "Funds", "Name='TEST_Fund'")
+    db.Execute "INSERT INTO UnitPurchase (FundID, Amount, DateID) VALUES (" & fundID & ", 5000, " & dateID1 & ")", dbFailOnError
+
+    ' Test 2: Delete AccountValue cascades to its purchases
+    countBefore = DCount("*", "UnitPurchase", "DateID=" & dateID1)
+
+    On Error Resume Next
+    Err.Clear
+    db.Execute "DELETE FROM AccountValue WHERE ID=" & dateID1, dbFailOnError
+    On Error GoTo 0
+
+    countAfter = DCount("*", "UnitPurchase", "DateID=" & dateID1)
+    If countBefore > 0 And countAfter = 0 Then
+        Debug.Print "v PASS: Deleting AccountValue row cascades to UnitPurchase"
+    Else
+        Debug.Print "x FAIL: Deleting AccountValue row did not remove UnitPurchase rows (before=" & countBefore & " after=" & countAfter & ")"
+    End If
+
+    CleanupTestData db
+End Sub
+
+' =====================================================
+' HELPERS
+' =====================================================
+
+Private Sub AssertInsertFails(db As DAO.Database, sql As String, description As String)
+    On Error Resume Next
+    Err.Clear
+    db.Execute sql, dbFailOnError
+    If Err.Number <> 0 Then
+        Debug.Print "v PASS: " & description
+    Else
+        Debug.Print "x FAIL: " & description & " (insert should have been rejected)"
+    End If
+    On Error GoTo 0
+End Sub
+
+Private Sub CleanupTestData(db As DAO.Database)
+    On Error Resume Next
+    db.Execute "DELETE FROM UnitPurchase WHERE FundID IN (SELECT ID FROM Funds WHERE Name='TEST_Fund')"
+    db.Execute "DELETE FROM AccountValue WHERE ValueDate=#1/1/2025#"
+    db.Execute "DELETE FROM AccountValue WHERE ValueDate=#2/1/2025#"
+    db.Execute "DELETE FROM AccountValue WHERE ValueDate=#3/1/2025#"
+    db.Execute "DELETE FROM Funds WHERE Name='TEST_Fund'"
+    db.Execute "DELETE FROM Funds WHERE Name='NullUnits_Fund'"
+    db.Execute "DELETE FROM AccountInfo"
+    On Error GoTo 0
+End Sub
+
+Private Function TableExists(tableName As String) As Boolean
+    Dim db As DAO.Database
+    Dim tdf As DAO.TableDef
+    Set db = CurrentDb
+    On Error Resume Next
+    Set tdf = db.TableDefs(tableName)
+    TableExists = (Err.Number = 0)
+    On Error GoTo 0
+End Function
+
+' Run just the quick test (for form button)
+Public Sub QuickTest()
+    On Error GoTo ErrorHandler
+
+    If TableExists("AccountInfo") And TableExists("Funds") And _
+       TableExists("AccountValue") And TableExists("UnitPurchase") Then
+        MsgBox "v All tables exist!" & vbCrLf & vbCrLf & _
+               "Run TestAllTables in the Immediate Window (Ctrl+G) for detailed results.", _
+               vbInformation, "Schema Test Passed"
+    Else
+        MsgBox "x Missing tables! Please create:" & vbCrLf & _
+               "- AccountInfo" & vbCrLf & _
+               "- Funds" & vbCrLf & _
+               "- AccountValue" & vbCrLf & _
+               "- UnitPurchase", vbCritical, "Schema Test Failed"
+    End If
+    Exit Sub
+
+ErrorHandler:
+    MsgBox "Error: " & Err.Description, vbCritical, "Test Failed"
+End Sub

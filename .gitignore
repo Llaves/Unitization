@@ -2,11 +2,11 @@
 
 *.bak
 *.xlsx
-*.doc*
 *.tmp
 *.pdf
 *.db
 *.spec
+*.accdb
 
 
 ToDo.txt
