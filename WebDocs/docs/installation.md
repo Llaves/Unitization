@@ -1,20 +1,15 @@
-## Installation:
-UnitTracker is provided as a .zip file. You can download it [here](https://www.unittracker.org/UnitTracker.zip). 
-Once downloaded, you can install it anywhere you want on your system with the exception of the Program Files or Program Files (x86) directories which will cause permissions problems.
+You must have Microsft Access on the machine you will be using for unit tracking. Access is included in Microsoft Office Professional and in Office 365 Business and above. 
 
-Create a directory called UnitTracker anyplace on your system. Common choices would be `C:\UnitTracker` or `C:\users\\\<user name>\AppData\Roaming\UnitTracker`. These are just suggestions – feel free to install wherever you want, just remember where you put it. 
+UnitTracker is provided as an Access .accdb file. You can download it [here](https://www.unittracker.org/UnitTracker_template.accdb). 
 
-Double-click on the `UnitTracker. zip` file and when it asks where to unzip, give the directory you just created. 
+You can place this file anywhere you like on your computer, but we recommend creating a new folder named UnitTracker. 
 
-If you now look at the UnitTracker directory, you should see these files:
+Common choices would be `C:\UnitTracker` or `C:\users\<user name>\AppData\Roaming\UnitTracker`. These are just suggestions – feel free to install wherever you want, just remember where you put it.
 
-![Directory Structure](img/directory_structure.png)
- 
-All the account information is stored in the file called `accounts.db`. You must be sure that you are backing up this file; if you lose it or overwrite it, you will lose all record of your tracking. You cannot install UnitTracker in two different places and expect things to work well as you will end up with two independent databases that know nothing about one another. This is OK if you’re tracking different accounts, but in general is a bad practice. 
+The file you just downloaded is an empty database. You should rename the file to something you will recognize, like `organization_name_endowment.accdb`, where you replace `organization_name` with the name of your organization.
 
-Every time you run UnitTracker the `accounts.db` file will be copied to the backup directory. If you make a mistake, lose or corrupt your file, you can step back in time by copying a file from the backup directory to the UnitTracker directory and renaming it `accounts.db`. The backup directory also contains backups from each time you run the demo file, so you can restore that to a past state as well by copying to the UnitTracker directory and renaming to demo.db.
+ If you are managing multiple endowments, just download another copy of the template and rename it for the additional endowment you are tracking. You can store this additional copy in the same directory as before, or create a new directory if you wish.
 
-The unpacked .zip file contains two .bat files that simplify running UnitTracker. You might want create shortcuts to drag to your desktop to make it easy to run UnitTracker. Double-clicking the .bat file `runDemoAccount.bat` will run UnitTracker using an alternative accounts file called demo.db. You can experiment with this to your heart’s content knowing that you are not corrupting your real accounts. Use this while learning, experimenting, or teaching someone. Double-clicking `runUnitTracker.bat` will load your real accounts database. 
 
-If you are moving UnitTracker to a new computer you will need to copy the `accounts.db` file from the old computer to the new. The .zip contains an empty `accounts.db` file that you need to overwrite. 
+If you are moving UnitTracker to a new computer you will need to copy the the .accdb file from the old computer to the new. That's it.
  

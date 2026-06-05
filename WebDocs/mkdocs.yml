@@ -10,6 +10,8 @@ nav:
   - 'Getting Started': 'getting_started.md'
   - 'Maintaining the Account': 'maintaining_the_account.md'
   - 'Editing': 'editing.md'
+  - 'Importing': 'importing.md'
+  - 'Updating': 'updating.md'
   - 'Appendix A: Commingled Investments and Unitization': 'appendix_a.md'
 
 markdown_extensions:

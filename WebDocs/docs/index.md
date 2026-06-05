@@ -4,10 +4,10 @@
 <br>
 <br>
 
-UnitTracker is a Windows program designed to manage small endowments, typically under $250M. There is nothing about the design that prevents use with larger endowments, but there are more sophisticated programs designed for large endowments that provide additional features. UnitTracker can be used to manage multiple endowments, as might be the case for an investment firm managing the endowments of multiple non-profits or educational institutions. It will work equally well for in-house unit management in an organization with a single endowment to manage.
+UnitTracker is an MS Access database designed to manage small endowments, typically under $250M. There is nothing about the design that prevents use with larger endowments, but there are more sophisticated programs designed for large endowments that provide additional features. Each copy of the database is used to manage a single endowment, but you can keep multiple copies of the database on your computer if you are resposible for unit tracking of multiple endowments. 
 
-Documentation for UnitTracker can be found at [here](https://www.unittracker.org).
+Documentation for UnitTracker can be found [here](https://www.unittracker.org).
 
 UnitTracker is free and open source. It is licensed  under the GNU Affero General Public License v3.0 - see the [LICENSE](agpl-3.0.txt) file for details.
-
-The source code is available on [Github](https://github.com/Llaves/Unitization)
+All the code is stored within the database and can be freely accessed.
+Because this is a standard Access database, you can extend the capbilities to produce additional reports to meet the needs of your organization.
