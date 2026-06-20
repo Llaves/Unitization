@@ -1,3 +1,5 @@
+The first time you run UnitTracker, you will most likely receive a warning about macros and a note telling you they are blocked from working. You need to unblock the file. [This Microsoft page](https://support.microsoft.com/en-US/Office/vba/a-potentially-dangerous-macro-has-been-blocked) explains how to unblock the macros. 
+
 To run UnitTracker, just double-click on the renamed .accdb file in the File Explorer Window. A splash screen with copyright and licensing information will appear and hang around for about 5 seconds. 
 
 ![Splash Screen](img/splash.png)
